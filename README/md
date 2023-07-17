@@ -1,0 +1,19 @@
+# Massa support for Umbrella oracle
+
+The goal of this repo is to add Massa support to the Umbrella oracle by translating their solidity smart contracts to Massa.
+
+## General structure
+
+We need to translate SCs from this repo: https://github.com/umbrella-network/phoenix/tree/develop/contracts
+
+The way it works:
+* `/interfaces` => solidity interfaces for the things below
+* `registry.sol` (needs to be translated) => registry allowing to query the latest addresses of the other Umbrella SCs to allow smart contracts to be upgraded
+  * dependency: `extensions/registrable.sol` for   `atomicupdate`
+* `onchainFeeds/umbrellafeeds.sol` (to be translated) => main contract providing the latest data to callers and allowing data updates by a list of allowed signing validators (note that `UmbrellaFeedsReader.sol` and `UmbrellaFeedsReaderFactory.sol` do not need to be translated)
+  * the cryptography used is the native ETH signature verification (we have an ABI for that)
+  * interacts with `/stakingBankStatic` => hardcoded list of validators allowed to sign data updates
+* `/Stakingbankstatic/stakingbankstatic.sol` (to be translated) = abstract contract base (implements the interface) for the static list of allowed data providers
+* `/Stakingbankstatic/stakingbankstaticProd.sol` (to be translated) = hardcoded list of production validators
+
+On our side we also need to provide Umbrella with the SDK to integrate Massa (operation signing, event and data read-out) 
