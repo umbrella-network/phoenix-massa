@@ -84,7 +84,7 @@ export class ArgsPacked {
 export class Bytes32 {
 
     private MAX_LEN: i32 = 32;
-    private _offset: i32 = 0;
+    // private _offset: i32 = 0;
     private serialized: StaticArray<u8> = new StaticArray<u8>(32);
     private offset_ser: i32 = 0;
 

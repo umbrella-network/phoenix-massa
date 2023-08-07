@@ -14,11 +14,14 @@ import {
     Storage,
     // abi
     call,
-    keccak256, generateEvent,
+    // keccak256,
+    generateEvent,
+    Context,
 } from '@massalabs/massa-as-sdk';
 
-import {PriceData, ArgsPacked, ArgsWithSelector, Bytes4, Bytes32, SResult} from "./UmbrellaFeedsCommon";
+import { PriceData, Bytes32, SResult } from "./UmbrellaFeedsCommon";
 import { isRegistry } from "../interfaces/IRegistry";
+import { isUmbrellaFeeds } from "../interfaces/IUmbrellaFeeds";
 
 const REGISTRY_KEY = stringToBytes("REGISTRY");
 const UMBRELLA_FEEDS_KEY = stringToBytes("UMB");
@@ -72,7 +75,10 @@ class UmbrellaFeedsReader {
     constructor(init: bool = false, _registry: Address = new Address(), _umbrellaFeeds: Address = new Address(), _key: string = "") {
 
         if (init) {
+            assert(Context.isDeployingContract());
             assert(_registry != new Address("0")); // EmptyAddress
+            isRegistry(_registry);
+            isUmbrellaFeeds(_umbrellaFeeds);
 
             Storage.set(REGISTRY_KEY, stringToBytes(_registry.toString()));
             Storage.set(UMBRELLA_FEEDS_KEY, stringToBytes(_umbrellaFeeds.toString()));
@@ -110,7 +116,11 @@ class UmbrellaFeedsReader {
     //         )
     latestRoundData(): LatestRoundData {
         let priceData = this._getPriceDataRaw();
-        return new LatestRoundData(0, u256.fromU128(priceData.price), u256.Zero, u256.from(priceData.timestamp), 0);
+        let data = new LatestRoundData(0, u256.fromU128(priceData.price), u256.Zero, u256.from(priceData.timestamp), 0);
+        if (ASC_OPTIMIZE_LEVEL == 0) {
+            generateEvent(`[latestRoundData] ${data.toString()}`);
+        }
+        return data;
     }
 
     /// @dev this is main endpoint for reading feed. Feed is read from UmbrellaFeeds contract using hardcoded `KEY`.
@@ -164,7 +174,6 @@ class UmbrellaFeedsReader {
 
         let KEY = Storage.get(KEY_KEY);
         let _priceData = call(umbrellaFeedsAddr, "getPriceData", new Args(KEY), 0);
-        // TODO: isUmbrellaFeeds interface check
         // let priceData = changetype<PriceData>(new PriceData(0, 0, 0, u128.Zero).deserialize(_priceData));
         let priceData = new PriceData();
         priceData.deserialize(_priceData).expect("Cannot deser PriceData");
@@ -216,7 +225,5 @@ export function decimals(): StaticArray<u8> {
 export function latestRoundData(): StaticArray<u8> {
     let umbReader = new UmbrellaFeedsReader();
     let lrd = umbReader.latestRoundData();
-    // Tests
-    // generateEvent(lrd.toString());
     return new Args().add(lrd).serialize();
 }

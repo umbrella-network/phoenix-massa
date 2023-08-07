@@ -142,11 +142,9 @@ class UmbrellaFeeds {
     constructor(init: bool = false, _contractRegistry: Address = new Address("0"), _requiredSignatures: u16 = 0, _decimals: u8 = 0) {
 
         if (init) {
-            // TODO: re enable this
-            // assert(Context.isDeployingContract());
+            assert(Context.isDeployingContract());
             assert(_requiredSignatures > 0);
-            // TODO: re enable this
-            // isRegistry(_contractRegistry);
+            isRegistry(_contractRegistry);
 
             Storage.set(REGISTRY_KEY, stringToBytes(_contractRegistry.toString()));
             Storage.set(REQUIRED_SIGNATURES_KEY, toBytes<u16>(_requiredSignatures));
@@ -154,8 +152,7 @@ class UmbrellaFeeds {
             let staking_bank_bytes32 = new Args().add(new Bytes32().add("STAKING_BANK").serialize());
             let _staking_bank = call(_contractRegistry, "requireAndGetAddress", staking_bank_bytes32, 0);
             let staking_bank = new Address(new Args(_staking_bank).nextString().expect("Cannot deser str"));
-            // TODO: re enable this
-            // isStakingBankStatic(staking_bank);
+            isStakingBankStatic(staking_bank);
             Storage.set(STAKING_BANK_KEY, _staking_bank);
             Storage.set(DECIMALS_KEY, toBytes<u8>(_decimals));
             // env.time -> assembly_script_get_time -> return block slot timestamp

@@ -39,7 +39,7 @@ function LogRegistered(dst: Address, name: StaticArray<u8>): void {
 class Registry {
     constructor(init: bool = false) {
         if (init) {
-            assert(callerHasWriteAccess());
+            assert(Context.isDeployingContract());
             // Note: this emits an event CHANGE_OWNER_EVENT_NAME
             setOwner(new Args().add(Context.caller()).serialize());
         }

@@ -11,6 +11,7 @@ import { ISerializable, IDeserializedResult, ArrayType } from '@massalabs/massa-
 import { getClient, getContractAddressfromDeploy, waitOperationEvents } from './utils';
 import {wBytes} from "./serializables/wBytes";
 import {PriceData, Signature} from "./serializables/umbrella";
+import {Bytes32} from "./serializables/bytes32";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(path.dirname(__filename));
@@ -64,7 +65,16 @@ console.log("Registry address:", registryAddr);
 
 // TODO: Nice way to init Bytes32 in ts
 // Note: STAKING_BANK as Bytes32
-let bank_name: Uint8Array = new Uint8Array([83, 84, 65, 75, 73, 78, 71, 95, 66, 65, 78, 75, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+// let bank_name: Uint8Array = new Uint8Array([83, 84, 65, 75, 73, 78, 71, 95, 66, 65, 78, 75, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+
+let bank_name: Uint8Array = new Bytes32().addString("STAKING_BANK").serialize();
+
+// console.log(`bank name 1: ${bank_name}`);
+// console.log(`bank name 2: ${bank_name_2}`);
+// if (bank_name != bank_name_2) {
+//     throw new Error("bank name != bank name 2");
+// }
+
 let _names: Array<wBytes> = [new wBytes(bank_name)];
 let _destinations: Array<string> = [bankAddr];
 // console.log("_destinations", _destinations, _destinations.length);
@@ -90,7 +100,6 @@ const operationId = await client.smartContracts().callSmartContract(
         targetAddress: registryAddr,
         functionName: 'importAddresses',
         parameter: importAddressesArgs.serialize(),
-        // parameter: new Args().serialize(),
     },
     deployerAccount,
 );
@@ -161,8 +170,8 @@ updateArgs.addSerializableObjectArray(_price_datas);
 let _signatures: Array<Signature> = [];
 updateArgs.addSerializableObjectArray(_signatures);
 
-console.log("updateArgs:");
-console.log(updateArgs);
+// console.log("updateArgs:");
+// console.log(updateArgs);
 
 // const deployerAccount = client.wallet().getBaseAccount()!;
 const operationId2 = await client.smartContracts().callSmartContract(
@@ -196,9 +205,6 @@ let umbReaderArgs = new Args()
     .addString(registryAddr)
     .addString(umbrellaFeedsAddr)
     .addString("ETH-USD")
-    // .addU8(reqSig[0])
-    // .addU8(reqSig[1])
-    // .addU8(9);
     ;
 
 console.log("umbReaderArgs:");

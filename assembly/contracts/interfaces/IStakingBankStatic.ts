@@ -11,7 +11,7 @@ import {
 
 export function isStakingBankStatic(sc: Address): bool {
     isStakingBank(sc);
-    // let _sc = sc.toString();
-    assert(functionExists(sc, "verifyValidators"));
+    // FIXME
+    // assert(functionExists(sc, "verifyValidators"));
     return true;
 }

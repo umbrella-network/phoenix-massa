@@ -14,12 +14,12 @@ import {
     keccak256,
     createSC,
     generateEvent,
-    balanceOf,
-    transferCoins
+    // balanceOf,
+    transferCoins, Context
 } from '@massalabs/massa-as-sdk';
 
 import { isRegistry } from "../interfaces/IRegistry";
-import { PriceData, ArgsPacked, Bytes32 } from "./UmbrellaFeedsCommon";
+import { Bytes32 } from "./UmbrellaFeedsCommon";
 
 const REGISTRY_KEY = stringToBytes("REGISTRY");
 const READERS_KEY_PREFIX = stringToBytes("R_");
@@ -58,7 +58,9 @@ class UmbrellaFeedsReaderFactory {
     // constructor(IRegistry _registry)
     constructor(init: bool = false, _registry: Address = new Address()) {
         if (init) {
+            assert(Context.isDeployingContract());
             assert(_registry != new Address("0")); // EmptyAddress
+            isRegistry(_registry);
             // Registry contract
             Storage.set(REGISTRY_KEY, stringToBytes(_registry.toString()));
         }
@@ -87,8 +89,6 @@ class UmbrellaFeedsReaderFactory {
         if (readerAddr.isOk()) {
             // generateEvent("[deploy] isOk");
             let _readerAddr: Address = readerAddr.unwrap();
-            // FIXME
-            // isRegistry(registryAddr);
             let _umbrellaFeedsAddrFromReader = call(_readerAddr, "UMBRELLA_FEEDS", new Args(), 0);
 
             if (_umbrellaFeedsAddrFromReader == _umbrellaFeedsAddr) {
