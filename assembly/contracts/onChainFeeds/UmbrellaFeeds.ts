@@ -305,12 +305,12 @@ class UmbrellaFeeds {
 
     // function getPriceDataByName(string calldata _name) external view returns (PriceData memory data)
     getPriceDataByName(_name: string): PriceData {
-
-        generateEvent("getPriceDataByName");
-        generateEvent(_name);
         let args = new ArgsPacked().add(_name);
         let key = keccak256(args.serialize());
         let data = StorageGetPriceData(key);
+        if (ASC_OPTIMIZE_LEVEL == 0) {
+            generateEvent(`[getPriceDataByName] ${data}`);
+        }
         return data;
     }
 

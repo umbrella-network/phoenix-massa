@@ -16,10 +16,10 @@ import {
     call,
     // keccak256,
     generateEvent,
-    Context,
+    Context, keccak256,
 } from '@massalabs/massa-as-sdk';
 
-import { PriceData, Bytes32, SResult } from "./UmbrellaFeedsCommon";
+import {PriceData, Bytes32, SResult, ArgsPacked} from "./UmbrellaFeedsCommon";
 import { isRegistry } from "../interfaces/IRegistry";
 import { isUmbrellaFeeds } from "../interfaces/IUmbrellaFeeds";
 
@@ -87,10 +87,9 @@ class UmbrellaFeedsReader {
             let decimals = call(_umbrellaFeeds, "DECIMALS", new Args(), 0);
             Storage.set(DECIMALS_KEY, decimals);
 
-            // FIXME: store hashed key in UmbrellaFeeds
-            // let hash = keccak256(new ArgsPacked().add(_key).serialize());
-            // assert(hash.length == 32);
-            let key = new Bytes32().add(_key).serialize();
+            let hash = keccak256(new ArgsPacked().add(_key).serialize());
+            assert(hash.length == 32);
+            let key = new Bytes32().add(hash).serialize();
             Storage.set(KEY_KEY, key);
 
             // sanity check

@@ -45,7 +45,7 @@ export class Bytes32 {
         return this;
     }
 
-    serialize(): Uint8Array {
+    public serialize(): Uint8Array {
         return this.serialized;
     }
 }
