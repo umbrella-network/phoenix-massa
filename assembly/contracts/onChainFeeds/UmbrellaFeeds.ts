@@ -8,15 +8,15 @@ import {
   Serializable,
   stringToBytes,
   bytesToString,
-  unwrapStaticArray,
-  wrapStaticArray
+  // unwrapStaticArray,
+  // wrapStaticArray
 } from '@massalabs/as-types';
 
 import {
     Address,
     Storage,
     Context,
-    collections,
+    // collections,
     generateEvent,
     // abi
     call,
@@ -28,9 +28,10 @@ import {
     env
 } from '@massalabs/massa-as-sdk/assembly/env'
 
-import {PriceData, ArgsPacked, Bytes32, SResult} from "./UmbrellaFeedsCommon";
+import { PriceData, ArgsPacked, Bytes32, SResult } from "./UmbrellaFeedsCommon";
 import { isRegistry } from "../interfaces/IRegistry";
 import { isStakingBankStatic } from "../interfaces/IStakingBankStatic";
+import { wBytes } from "../utils";
 
 const ETH_PREFIX = stringToBytes("\x19Ethereum Signed Message:\n32");
 const NAME = "UmbrellaFeeds";
@@ -138,7 +139,6 @@ function StorageSetPriceData(_priceKey: StaticArray<u8>, _priceData: PriceData):
 
 class UmbrellaFeeds {
     // constructor(IRegistry _contractRegistry, uint16 _requiredSignatures, uint8 _decimals)
-    // TODO: use default values to easily init the class in exported functions
     constructor(init: bool = false, _contractRegistry: Address = new Address("0"), _requiredSignatures: u16 = 0, _decimals: u8 = 0) {
 
         if (init) {
@@ -260,12 +260,16 @@ class UmbrellaFeeds {
         // assert(_key.length == 32, "Not 32");
         let data = StorageGetPriceData(_key);
         assert(data.timestamp != 0, "FeedNotExist"); // FeedNotExist
+        if (ASC_OPTIMIZE_LEVEL == 0) {
+            generateEvent(`[getSomePriceData] ${data}`);
+        }
         return data;
     }
 
     // New function - emulate prices fetch
     getSomePriceData(_key: StaticArray<u8>): SResult<PriceData> {
-        return StorageGetSomePriceData(_key);
+        let res = StorageGetSomePriceData(_key);
+        return res;
     }
 
     // function getPrice(bytes32 _key) external view returns (uint128 price)
@@ -376,11 +380,8 @@ export function constructor(_args: StaticArray<u8>): void {
 export function update(_args: StaticArray<u8>): void {
 
     let args = new Args(_args);
-    // let _priceKeys = args
-    //     .nextFixedSizeArray<StaticArray<u8>>()
-    //     .expect("Cannot deser _priceKeys");
-    let _priceKeys: Array<Bytes> = args
-        .nextSerializableObjectArray<Bytes>()
+    let _priceKeys: Array<wBytes> = args
+        .nextSerializableObjectArray<wBytes>()
         .expect("Cannot deser _priceKeys");
     let priceKeys: Array<StaticArray<u8>> = new Array(_priceKeys.length);
     for(let i = 0; i < _priceKeys.length; i++) {
@@ -394,13 +395,12 @@ export function update(_args: StaticArray<u8>): void {
          .nextSerializableObjectArray<Signature>()
          .expect("Cannot deser _signatures");
 
-    let umbrellaFeeds = new UmbrellaFeeds(false, new Address("0"), 0, 0);
+    let umbrellaFeeds = new UmbrellaFeeds();
     umbrellaFeeds.update(priceKeys, _priceDatas, _signatures);
     return;
 }
 
 export function getPriceData(_key: StaticArray<u8>): StaticArray<u8> {
-
     let args = new Args(_key);
     let key = args.nextBytes().expect("Cannot deser _key");
     let umbrellaFeeds = new UmbrellaFeeds();
@@ -419,7 +419,6 @@ export function getSomePriceData(_key: StaticArray<u8>): StaticArray<u8> {
 export function getPriceDataByName(_args: StaticArray<u8>): StaticArray<u8> {
     let args = new Args(_args);
     let _name = args.nextString().expect("Cannot deser _name");
-
     let umbrellaFeeds = new UmbrellaFeeds();
     let _priceData = umbrellaFeeds.getPriceDataByName(_name);
     return new Args().add(_priceData).serialize();
@@ -431,28 +430,3 @@ export function DECIMALS(): StaticArray<u8> {
     return new Args().add(decimals).serialize();
 }
 
-// FIXME: facto with Registry.ts impl
-class Bytes implements Serializable {
-    public data: StaticArray<u8>
-
-    constructor(data: StaticArray<u8> = new StaticArray<u8>(0)) {
-        this.data = data;
-    }
-
-    public serialize(): StaticArray<u8> {
-        const args = new Args();
-        args.add(this.data);
-        return args.serialize();
-    }
-
-    public deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
-        const args = new Args(data, offset);
-        this.data = args.nextBytes().expect("Cannot get bytes");
-        return new Result(args.offset);
-    }
-
-    public toString(): string {
-        return this.data.toString();
-    }
-
-}

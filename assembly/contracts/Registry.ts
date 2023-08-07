@@ -27,8 +27,8 @@ import {
 } from '@massalabs/sc-standards/assembly/contracts/utils/ownership';
 
 import { isRegistrable } from "./extensions/Registrable";
-// FIXME
 import { Bytes32 } from "./onChainFeeds/UmbrellaFeedsCommon";
+import { wBytes } from './utils';
 
 function LogRegistered(dst: Address, name: StaticArray<u8>): void {
     let _name_arr = new Array<string>(1);
@@ -37,7 +37,7 @@ function LogRegistered(dst: Address, name: StaticArray<u8>): void {
 }
 
 class Registry {
-    constructor(init: bool) {
+    constructor(init: bool = false) {
         if (init) {
             assert(callerHasWriteAccess());
             // Note: this emits an event CHANGE_OWNER_EVENT_NAME
@@ -124,8 +124,8 @@ export function constructor(args: StaticArray<u8>): void {
 export function importAddresses(_args: StaticArray<u8>): void {
 
     let args = new Args(_args);
-    let _names: Array<Bytes> = args
-        .nextSerializableObjectArray<Bytes>()
+    let _names: Array<wBytes> = args
+        .nextSerializableObjectArray<wBytes>()
         .expect("Cannot deser _names");
 
     let _destinations: Array<string> = args
@@ -142,7 +142,7 @@ export function importAddresses(_args: StaticArray<u8>): void {
         destinations[i] = new Address(_destinations[i]);
     }
 
-    let reg = new Registry(false);
+    let reg = new Registry();
     reg.importAddresses(names, destinations);
 }
 
@@ -151,7 +151,7 @@ export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
     let args = new Args(_args);
     let name = args.nextBytes().expect("Cannot deser bytes");
 
-    let reg = new Registry(false);
+    let reg = new Registry();
     let addr: Address = reg.requireAndGetAddress(name);
 
     let ret = new Args().add(addr);
@@ -160,34 +160,7 @@ export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
 
 export function getAddressByString(args: StaticArray<u8>): StaticArray<u8> {
     let _name: string = new Args(args).nextString().expect("Cannot desert _name");
-    let reg = new Registry(false);
+    let reg = new Registry();
     let addr = reg.getAddressByString(_name);
     return new Args().add(addr).serialize();
-}
-
-// Debug
-
-class Bytes implements Serializable {
-    public data: StaticArray<u8>
-
-    constructor(data: StaticArray<u8> = new StaticArray<u8>(0)) {
-        this.data = data;
-    }
-
-    public serialize(): StaticArray<u8> {
-        const args = new Args();
-        args.add(this.data);
-        return args.serialize();
-    }
-
-    public deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
-        const args = new Args(data, offset);
-        this.data = args.nextBytes().expect("Cannot get bytes");
-        return new Result(args.offset);
-    }
-
-    public toString(): string {
-        return this.data.toString();
-    }
-
 }

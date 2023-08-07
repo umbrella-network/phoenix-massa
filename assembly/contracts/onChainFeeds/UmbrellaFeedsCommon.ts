@@ -272,4 +272,12 @@ export class SResult<T extends Serializable> extends Result<T> implements Serial
         // this. = args.getNextData(this.MAX_LEN());
         return new Result(args.offset);
     }
+
+    public toString(): string {
+        if (this.isOk()) {
+            return `Ok(${this.value.toString()})`;
+        } else {
+            return 'Err';
+        }
+    }
 }
