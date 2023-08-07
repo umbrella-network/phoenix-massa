@@ -209,12 +209,16 @@ class UmbrellaFeeds {
             let _price_key = _priceKeys[i];
             assert(_price_key.length == 32);
             let _price_data = _priceDatas[i];
-            // FIXME: check if key exists before getting it - return Result?
-            // let stored_price_data = StorageGetPriceData(_price_key);
+            // Note: Solidity Mapping always returns a value so here we return a Result
+            let _stored_price_data = StorageGetSomePriceData(_price_key);
+            let stored_price_data = new PriceData(0, 0, 0, u128.Zero);
+            if (_stored_price_data.isOk()) {
+                stored_price_data = _stored_price_data.unwrap();
+            }
 
             // we do not allow for older prices
             // at the same time it prevents from reusing signatures
-            // assert(stored_price_data.timestamp < _price_data.timestamp, "ts not <"); // OldData
+            assert(stored_price_data.timestamp < _price_data.timestamp, "ts not <"); // OldData
 
             StorageSetPriceData(_price_key, _price_data);
             i+=1;
