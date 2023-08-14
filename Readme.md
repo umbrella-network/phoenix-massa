@@ -4,9 +4,9 @@ Umbrella SC for Massa blockchain
 
 # Code organisation
 
-assembly: SC sources (in AssemblyScript aka AS)
-src: deploy scripts (in typescript (TS))
-build: build folder where wasm files are written
+* assembly: SC sources (in AssemblyScript aka AS)
+* src: deploy scripts (in typescript (TS))
+* build: build folder where wasm files are written
 
 # Dev
 
