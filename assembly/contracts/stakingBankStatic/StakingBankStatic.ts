@@ -12,13 +12,14 @@ import {
     stringToBytes,
     unwrapStaticArray
 } from "@massalabs/as-types";
+import {EvmAddress} from "../utils";
 
 
 export class Validator implements Serializable {
-    id: Address;
+    id: EvmAddress;
     location: string;
 
-    constructor(id: Address, location: String) {
+    constructor(id: EvmAddress, location: string) {
         this.id = id;
         this.location = location;
     }
@@ -32,9 +33,13 @@ export class Validator implements Serializable {
 
     public deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
         const args = new Args(data, offset);
-        this.id = args.nextString().expect("Can't deserialize id");
-        this.location = args.nextAddress().expect("Can't deserialize location");
+        this.id = args.nextSerializable<EvmAddress>().expect("Can't deserialize id");
+        this.location = args.nextString().expect("Can't deserialize location");
         return new Result(args.offset);
+    }
+
+    public toString(): string {
+        return `[Validator] id: ${this.id} - loc: ${this.location}`;
     }
 }
 
@@ -54,14 +59,71 @@ export abstract class StakingBankStatic {
         }
     }
 
-    abstract _addresses(): Address[];
-    abstract _isValidator(_validator: Address): bool;
+    // function balances(address _validator) external view returns (uint256)
+    balances(_validator: EvmAddress): u256 {
+        if (this._isValidator(_validator)) {
+            return u256.One;
+        } else {
+            return u256.Zero;
+        }
+    }
 
+    // function verifyValidators(address[] calldata _validators) external view returns (bool)
+    verifyValidators(_validators: EvmAddress[]): bool {
+        for(let i=0; i< _validators.length; i++) {
+            if (!this._isValidator(_validators[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // function getNumberOfValidators() external view returns (uint256)
+    getNumberOfValidators(): u256 {
+        return u256.Zero;
+    }
+
+    // function getAddresses() external view returns (address[] memory)
+    getAddresses(): void {
+        // TODO
+    }
+
+    // function getBalances() external view returns (uint256[] memory allBalances)
+    // TODO
+    // function addresses(uint256 _ix) external view returns (address) {
+    // TODO
+    // function validators(address _id) external view virtual returns (address id, string memory location);
+    // TODO
+    // function balanceOf(address _account) external view returns (uint256) {
+    // TODO
+    // function totalSupply() external view returns (uint256) {
+    // TODO
+
+    getName(): Bytes32 {
+        return new Bytes32().add("StakingBank");
+    }
+
+    /// @dev to follow Registrable interface
+    register(): void {
+        // there are no requirements atm
+    }
+
+    /// @dev to follow Registrable interface
+    unregister(): void {
+        // there are no requirements atm
+    }
+
+    // function _addresses() internal view virtual returns (address[] memory);
+    abstract _addresses(): EvmAddress[];
+    // function _isValidator(address _validator) internal view virtual returns (bool);
+    abstract _isValidator(_validator: EvmAddress): bool;
+
+    // function _assertValidSetup(uint256 _validatorsCount) internal view virtual
     _assertValidSetup(_validatorsCount: u256): void {
-        let list = _addresses();
+        let list = this._addresses();
         assert(list.length, _validatorsCount.toU32());
-        for(let i: u256 = u256.Zero; i< _validatorsCount; i++) {
-            assert(_isValidator(list[i]));
+        for(let i = 0; i< list.length; i++) {
+             assert(this._isValidator(list[i]));
         }
     }
 }

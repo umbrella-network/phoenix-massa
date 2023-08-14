@@ -19,7 +19,7 @@ import {
     Context, keccak256,
 } from '@massalabs/massa-as-sdk';
 
-import {PriceData, Bytes32, SResult, ArgsPacked} from "./UmbrellaFeedsCommon";
+import {PriceData, Bytes32, SResult, AbiEncodePacked} from "./UmbrellaFeedsCommon";
 import { isRegistry } from "../interfaces/IRegistry";
 import { isUmbrellaFeeds } from "../interfaces/IUmbrellaFeeds";
 
@@ -87,7 +87,7 @@ class UmbrellaFeedsReader {
             let decimals = call(_umbrellaFeeds, "DECIMALS", new Args(), 0);
             Storage.set(DECIMALS_KEY, decimals);
 
-            let hash = keccak256(new ArgsPacked().add(_key).serialize());
+            let hash = keccak256(new AbiEncodePacked().add(_key).serialize());
             assert(hash.length == 32);
             let key = new Bytes32().add(hash).serialize();
             Storage.set(KEY_KEY, key);

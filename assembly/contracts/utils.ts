@@ -1,7 +1,9 @@
-import {Args, Result, Serializable} from "@massalabs/as-types";
+import {Args, Result, Serializable, wrapStaticArray} from "@massalabs/as-types";
+import {u256} from "as-bignum/assembly";
+import {Address, balance, generateEvent, getKeys, setBytecode, Storage, transferCoins} from "@massalabs/massa-as-sdk";
 
 export class wBytes implements Serializable {
-    public data: StaticArray<u8>
+    protected data: StaticArray<u8>
 
     constructor(data: StaticArray<u8> = new StaticArray<u8>(0)) {
         this.data = data;
@@ -21,5 +23,77 @@ export class wBytes implements Serializable {
 
     public toString(): string {
         return this.data.toString();
+    }
+
+    public getData(): StaticArray<u8> {
+        return this.data;
+    }
+}
+
+const EVM_ADDRESS_DATA_LEN = 20;
+export class EvmAddress extends wBytes {
+
+    constructor(data: StaticArray<u8> = new StaticArray<u8>(EVM_ADDRESS_DATA_LEN)) {
+        super(data);
+    }
+
+    // In Solidity, evm address can be converted to uint160 (and then compared)
+    // As we don't have u160 in AS, we convert here to 256
+    public toU256(): u256 {
+        // assert(this.data.length == 20, "Expect evm address length to be 20");
+        let withPad = new StaticArray<u8>(12).concat(this.data);
+        return u256.fromUint8ArrayBE(wrapStaticArray(withPad));
+    }
+
+    // Naive impl from: https://stackoverflow.com/questions/14603205/how-to-convert-hex-string-into-a-bytes-array-and-a-bytes-array-in-the-hex-strin
+    public static fromHex(hex: string): EvmAddress {
+        // address addr1 = 0x0000000000000000000000000000000000000001;
+        assert(hex.length == 40 || hex.length == 42) // 40 == without 0x, 42 with
+        let data = new StaticArray<u8>(EVM_ADDRESS_DATA_LEN);
+
+        let _hex = hex;
+        if (hex.length == 42) {
+            _hex = hex.slice(2);
+        }
+
+        let j = 0;
+        for (let i = 0; i < _hex.length; i += 2) {
+            data[j] = U8.parseInt(_hex.substr(i, 2), 16);
+            j++;
+        }
+
+        return new EvmAddress(data);
+    }
+
+    @inline @operator('==')
+    static eq(a: EvmAddress, b: EvmAddress): bool {
+        return memory.compare(changetype<usize>(a.data), changetype<usize>(b.data), EVM_ADDRESS_DATA_LEN) == 0;
+    }
+
+    @inline @operator('!=')
+    static ne(a: EvmAddress, b: EvmAddress): bool {
+        return !EvmAddress.eq(a, b);
+    }
+}
+
+// emulate: Solidity selfdestruct
+export function selfDestruct(transferToAddr: Address): void {
+
+    // 1- empty the SC
+    let emptySc = new StaticArray<u8>(0);
+    setBytecode(emptySc);
+
+    // 2- delete everything in Storage
+    let keys = getKeys();
+    for(let i=0; i<keys.length; i++) {
+        Storage.del(keys[i]);
+    }
+
+    // 3- transfer back coins if any
+    let scBalance = balance();
+    // Balance will most likely be > 0 as we deleted some keys from the Storage
+    // but if there is nothing in the Storage, no need to call transferCoins
+    if (scBalance > 0) {
+        transferCoins(transferToAddr, scBalance);
     }
 }

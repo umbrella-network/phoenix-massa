@@ -153,6 +153,9 @@ export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
 
     let reg = new Registry();
     let addr: Address = reg.requireAndGetAddress(name);
+    if (ASC_OPTIMIZE_LEVEL == 0) {
+        generateEvent(`[requireAndGetAddress] ${addr}`);
+    }
 
     let ret = new Args().add(addr);
     return ret.serialize();

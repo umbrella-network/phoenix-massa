@@ -1,5 +1,4 @@
-import { Args } from '@massalabs/massa-web3';
-import { ISerializable, IDeserializedResult } from '@massalabs/massa-web3';
+import { Args, ISerializable, IDeserializedResult } from '@massalabs/massa-web3';
 
 export class wBytes implements ISerializable<wBytes> {
     private arr: Uint8Array = new Uint8Array(0);
@@ -18,3 +17,4 @@ export class wBytes implements ISerializable<wBytes> {
         return { instance: this, offset: args.getOffset() };
     }
 }
+

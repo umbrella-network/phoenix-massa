@@ -11,7 +11,8 @@ import keccak256 from "@indeliblelabs/keccak256";
 
 import { getClient, getContractAddressfromDeploy, waitOperationEvents } from './utils';
 import { wBytes } from './serializables/wBytes';
-import { PriceData, Signature } from './serializables/umbrella';
+import { PriceData } from './serializables/umbrella';
+import { EvmSignature } from './serializables/evmSignature';
 import {Bytes32} from "./serializables/bytes32";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,14 +23,14 @@ const { client, account } = await getClient();
 // console.log("hello");
 // console.log(`env: ${process.env}`);
 
-console.log("Deploying StakingBank contract...");
+console.log("Deploying StakingBankStatic contract...");
 const deploy_staking_bank = await deploySC(
     process.env.JSON_RPC_URL_PUBLIC!,
     account,
     [
         {
             data: readFileSync(path.join(__dirname, 'build', 'StakingBankStaticDev.wasm')),
-            coins: fromMAS(0.9),
+            coins: fromMAS(0.2),
             args: new Args().addU256(BigInt(2)),
         },
     ],
@@ -51,7 +52,7 @@ const deploy_registry = await deploySC(
     [
         {
             data: readFileSync(path.join(__dirname, 'build', 'Registry.wasm')),
-            coins: fromMAS(0.9),
+            coins: fromMAS(0.2),
             args: new Args(),
         },
     ],
@@ -65,9 +66,6 @@ const registryAddr = getContractAddressfromDeploy(deploy_registry);
 // const registryAddr = "AS12LeMT3jzY9n3PWVYKcEUoHNoeaf5kwiMytHhvAxkvthhhrowPK";
 console.log("Registry address:", registryAddr);
 
-// TODO: Nice way to init Bytes32 in ts
-// Note: STAKING_BANK as Bytes32
-// let bank_name: Uint8Array = new Uint8Array([83, 84, 65, 75, 73, 78, 71, 95, 66, 65, 78, 75, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 let bank_name: Uint8Array = new Bytes32().addString("STAKING_BANK").serialize();
 let _names: Array<wBytes> = [new wBytes(bank_name)];
 let _destinations: Array<string> = [bankAddr];
@@ -90,7 +88,7 @@ const operationId = await client.smartContracts().callSmartContract(
         fee: 0n,
         maxGas: 70_000_000n,
         // coins: 1_000_000_000n,
-        coins: 1n,
+        coins: 0n,
         targetAddress: registryAddr,
         functionName: 'importAddresses',
         parameter: importAddressesArgs.serialize(),
@@ -151,23 +149,15 @@ console.log("UmbrellaFeeds address:", umbrellaFeedsAddr);
 console.log(`Calling UmbrellaFeeds.update, contract addr: ${umbrellaFeedsAddr}`);
 
 let updateArgs = new Args();
-// python3: p = b'BTC-USD'; print(list(p)+[0]*(32-len(p)));
-// let price_1: Uint8Array = new Uint8Array([66, 84, 67, 45, 85, 83, 68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-// let _price_1: Uint8Array = new Bytes32().addString("BTC-USD").serialize();
-// python3: p = b'ETH-USD'; print(list(p)+[0]*(32-len(p)));
-// let price_2: Uint8Array = new Uint8Array([69, 84, 72, 45, 85, 83, 68, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-// let _price_2: Uint8Array = new Bytes32().addString("ETH-USD").serialize();
-
 let price_1 = keccak256("BTC-USD");
 let price_2 = keccak256("ETH-USD");
-
 let _prices: Array<wBytes> = [new wBytes(new Uint8Array(price_1)), new wBytes(new Uint8Array(price_2))];
 updateArgs.addSerializableObjectArray(_prices);
 let price_data_1 = new PriceData(9, 1, 2, 16535);
 let price_data_2 = new PriceData(8, 1, 2, 1821);
 let _price_datas: Array<PriceData> = [price_data_1, price_data_2];
 updateArgs.addSerializableObjectArray(_price_datas);
-let _signatures: Array<Signature> = [];
+let _signatures: Array<EvmSignature> = [];
 updateArgs.addSerializableObjectArray(_signatures);
 
 // console.log("updateArgs:");
@@ -178,7 +168,7 @@ const operationId2 = await client.smartContracts().callSmartContract(
         fee: 0n,
         maxGas: 70_000_000n,
         // coins: 1_000_000_000n,
-        coins: 1n,
+        coins: 0n,
         targetAddress: umbrellaFeedsAddr,
         functionName: 'update',
         parameter: updateArgs.serialize(),
@@ -212,7 +202,7 @@ const operationId3 = await client.smartContracts().callSmartContract(
         fee: 0n,
         maxGas: 70_000_000n,
         // coins: 1_000_000_000n,
-        coins: 9n,
+        coins: 0n,
         targetAddress: umbrellaFeedsAddr,
         functionName: 'getPriceData',
         parameter: getPriceDataArgs.serialize(),
@@ -242,7 +232,7 @@ const operationId3_2 = await client.smartContracts().callSmartContract(
         fee: 0n,
         maxGas: 70_000_000n,
         // coins: 1_000_000_000n,
-        coins: 1n,
+        coins: 0n,
         targetAddress: umbrellaFeedsAddr,
         functionName: 'getPriceDataByName',
         parameter: getPriceDataByNameArgs.serialize(),

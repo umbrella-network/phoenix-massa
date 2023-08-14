@@ -35,22 +35,4 @@ export class PriceData implements ISerializable<PriceData> {
   }
 }
 
-export class Signature implements ISerializable<Signature> {
-  private v: number = 0; // u8
-  // TODO: r, s
 
-  constructor(v: number) {
-    this.v = v;
-  }
-
-  serialize(): Uint8Array {
-    let args = new Args()
-        .addU8(this.v)
-    return new Uint8Array(args.serialize());
-  }
-  deserialize(data: Uint8Array, offset: number): IDeserializedResult<Signature> {
-    const args = new Args(data, offset);
-    this.v = parseInt(args.nextU8().toString());
-    return { instance: this, offset: args.getOffset() };
-  }
-}

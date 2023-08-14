@@ -15,6 +15,7 @@ export function isStakingBank(sc: Address): bool {
     // assert(functionExists(sc, "createaddress"));
     // assert(functionExists(sc, "remove"));
     // assert(functionExists(sc, "update"));
+
     // assert(functionExists(sc, "getNumberOfValidators"));
     // assert(functionExists(sc, "addresses"));
     assert(functionExists(sc, "validators"));

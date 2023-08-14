@@ -11,7 +11,6 @@ import {
 
 export function isStakingBankStatic(sc: Address): bool {
     isStakingBank(sc);
-    // FIXME
-    // assert(functionExists(sc, "verifyValidators"));
+    assert(functionExists(sc, "verifyValidators"), "No verifVal");
     return true;
 }

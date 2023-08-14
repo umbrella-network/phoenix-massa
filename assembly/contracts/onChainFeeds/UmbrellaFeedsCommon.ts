@@ -5,7 +5,7 @@ import {
     Result,
     Serializable,
     stringToBytes,
-    toBytes
+    toBytes, wrapStaticArray
 } from '@massalabs/as-types';
 
 export class PriceData implements Serializable {
@@ -49,8 +49,69 @@ export class PriceData implements Serializable {
     }
 }
 
+// Emulate abi.encode
+// Note: in order to add a class you need to add each field one by one
+export class AbiEncode {
+    private serialized: StaticArray<u8> = new StaticArray<u8>(0);
+    constructor(serialized: StaticArray<u8> = []) {
+        this.serialized = serialized;
+    }
+
+    serialize(): StaticArray<u8> {
+        return this.serialized;
+    }
+
+    add<T>(arg: T): AbiEncode {
+        if (arg instanceof u8) {
+            let arg_32 = new StaticArray<u8>(32-sizeof<T>()).concat(toBytes(arg));
+            this.serialized = this.serialized.concat(arg_32);
+        } else if (arg instanceof u16) {
+            let arg_32 = new StaticArray<u8>(32-sizeof<T>()).concat(toBytes(bswap(arg)));
+            this.serialized = this.serialized.concat(arg_32);
+        } else if (arg instanceof u32) {
+            let arg_32 = new StaticArray<u8>(32-sizeof<T>()).concat(toBytes(bswap(arg)));
+            this.serialized = this.serialized.concat(arg_32);
+        } else if (arg instanceof u128) {
+            this.serialized = this.serialized.concat(arg.toStaticBytes(true));
+        } else if (arg instanceof u256) {
+            this.serialized = this.serialized.concat(arg.toStaticBytes(true));
+        } else if (arg instanceof string) {
+            let _arg = stringToBytes(arg)
+            // Offset to string data?
+            let offset: u32 = this.serialized.length + 32;
+            let arg1_32 = new StaticArray<u8>(32-sizeof<u32>()).concat(toBytes(bswap(offset)));
+            this.serialized = this.serialized.concat(arg1_32);
+            // String as bytes length
+            let str_len: u32 = _arg.length;
+            let arg2_32 = new StaticArray<u8>(32-sizeof<u32>()).concat(toBytes(bswap(str_len)));
+            this.serialized = this.serialized.concat(arg2_32);
+            // String as bytes
+            let chunk = i32(_arg.length / 32);
+            if (_arg.length % 32 != 0) {
+                chunk += 1;
+            }
+            for(let i = 0; i< chunk; i++) {
+
+                let start_offset = i*32;
+                let end_offset = (i+1)*32;
+                if (end_offset > _arg.length) {
+                    end_offset = _arg.length;
+                }
+                let _bytes = _arg.slice<StaticArray<u8>>(start_offset, end_offset);
+                let b32 = new Bytes32().add(_bytes);
+                this.serialized = this.serialized.concat(b32.serialize());
+            }
+        } else if (arg instanceof Bytes32) {
+            this.serialized = this.serialized.concat(arg.serialize());
+        } else {
+            ERROR("[AbiEncode] Do not know how to serialize the given type");
+        }
+        return this;
+    }
+}
+
 // Emulate abi.encodePacked
-export class ArgsPacked {
+export class AbiEncodePacked {
     private _offset: i32 = 0;
     private serialized: StaticArray<u8> = new StaticArray<u8>(0);
 
@@ -63,7 +124,7 @@ export class ArgsPacked {
         return this.serialized;
     }
 
-    add<T>(arg: T): ArgsPacked {
+    add<T>(arg: T): AbiEncodePacked {
         if (arg instanceof u8) {
             this.serialized = this.serialized.concat(toBytes(arg));
         } else if (arg instanceof u16) {
@@ -176,21 +237,8 @@ export class Bytes4 extends BytesLen {
     }
 }
 
-/*
-export class Bytes53 extends BytesLen {
-    @inline
-    MAX_LEN(): i32 {
-        return 53;
-    }
-
-    add<T>(arg: T): Bytes53 {
-        return changetype<Bytes53>(this._add(arg));
-    }
-}
-*/
-
 // Emulate abi.encodeWithSelector
-export class ArgsWithSelector {
+export class AbiEncodeWithSelector {
     private serialized: StaticArray<u8> = new StaticArray<u8>(8);
 
     constructor(selector: Bytes4) {
@@ -202,7 +250,7 @@ export class ArgsWithSelector {
         return this.serialized;
     }
 
-    add<T>(arg: T): ArgsWithSelector {
+    add<T>(arg: T): AbiEncodeWithSelector {
         if (arg instanceof u8) {
             let arg_32 = new StaticArray<u8>(32-sizeof<T>()).concat(toBytes(arg));
             this.serialized = this.serialized.concat(arg_32);
@@ -280,4 +328,24 @@ export class SResult<T extends Serializable> extends Result<T> implements Serial
             return 'Err';
         }
     }
+}
+
+/*
+// In Solidity, evm address can be converted to uint160 (and then compared)
+// As we don't have u160 in AS, we convert here to 256
+export function evmAddressToU256(addr: StaticArray<u8>): u256 {
+    assert(addr.length == 20, "Expect evm address length to be 20");
+    let withPad = new StaticArray<u8>(12).concat(addr);
+    return u256.fromUint8ArrayBE(wrapStaticArray(withPad));
+}
+*/
+
+// Convert bytes array (length 32) to u256
+// In Solidity, you can see code like:
+// (uint8 v, bytes32 r, bytes32 s) = ...
+// if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+//     revert ECDSAInvalidSignatureS();
+// }
+export function bytes32ToU256(a: StaticArray<u8>): u256 {
+    return u256.fromUint8ArrayBE(wrapStaticArray(a));
 }

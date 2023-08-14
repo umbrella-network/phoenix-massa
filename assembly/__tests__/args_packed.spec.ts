@@ -14,11 +14,13 @@ import {
 } from '@massalabs/as-types';
 
 import {
-    ArgsPacked,
     Bytes32,
     Bytes4,
-    ArgsWithSelector
+    AbiEncode,
+    AbiEncodePacked, AbiEncodeWithSelector, bytes32ToU256
 } from "../contracts/onChainFeeds/UmbrellaFeedsCommon";
+
+import {EvmAddress} from "../contracts/utils";
 
 // return bytes32 for "UmbrellaFeeds": 0x556d6272656c6c61466565647300000000000000000000000000000000000000
 // return bytes32 for "a": 0x6100000000000000000000000000000000000000000000000000000000000000
@@ -32,7 +34,7 @@ import {
 
 // keccack256(abi.encodePacked(v1, v2)), u16 v1 = 65536, uint8 v2 = 42 -> 0xdfda1898fa32f6f38210da86f4fc6ac68eca0982284e07cdf73a9d90a32807aa
 
-describe("ArgsPacked", () => {
+describe("AbiEncodePacked", () => {
     it("test multi 1", () => {
         let val1: u16 = u16.MAX_VALUE; // 0xFF -> 255, 255
         let val2: u8 = 42; // 42
@@ -43,7 +45,7 @@ describe("ArgsPacked", () => {
         let _expected: Array<u8> = [255, 255, 42, 0, 3, 0, 0, 0, 7, 97, 65, 98, 99, 49];
         let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
 
-        let ap = new ArgsPacked();
+        let ap = new AbiEncodePacked();
         ap.add<u16>(val1);
         ap.add<u8>(val2);
         ap.add<u16>(val3);
@@ -82,7 +84,7 @@ describe("ArgsPacked", () => {
         let _expected: Array<u8> = [87, 87, 111, 111];
         let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
 
-        let ap = new ArgsPacked();
+        let ap = new AbiEncodePacked();
         ap.add<StaticArray<u8>>(sa1);
         ap.add<StaticArray<u8>>(sa2);
         let apSer = ap.serialize();
@@ -221,10 +223,10 @@ describe("Bytes4", () => {
     */
 });
 
-describe("ArgsWithSelector", () => {
+describe("AbiEncodeWithSelector", () => {
     it("test empty", () => {
         let b4 = new Bytes4().add("1111");
-        let aSel = new ArgsWithSelector(b4);
+        let aSel = new AbiEncodeWithSelector(b4);
         let aSelSer = aSel.serialize();
 
         let _expected: Array<u8> = [
@@ -238,7 +240,7 @@ describe("ArgsWithSelector", () => {
     });
     it("test with u8 / u16", () => {
         let b4 = new Bytes4().add("1111");
-        let aSel = new ArgsWithSelector(b4).add<u16>(65283).add<u8>(42);
+        let aSel = new AbiEncodeWithSelector(b4).add<u16>(65283).add<u8>(42);
         // let aSel = new ArgsWithSelector(b4).add<u16>(65283);
         // let aSel = new ArgsWithSelector(b4).add<u8>(42);
         let aSelSer = aSel.serialize();
@@ -260,7 +262,7 @@ describe("ArgsWithSelector", () => {
         let b4 = new Bytes4().add("1111");
         let b32 = new Bytes32().add("AiuuuuuuuuuuuuuuuuuuuuuuuuuuuAiu");
 
-        let aSel = new ArgsWithSelector(b4).add(b32);
+        let aSel = new AbiEncodeWithSelector(b4).add(b32);
         let aSelSer = aSel.serialize();
 
         let _expected: Array<u8> = [
@@ -279,5 +281,231 @@ describe("ArgsWithSelector", () => {
         expect<i32>(expected.length).toBe(36); // 4 + 32
         expect<i32>(aSelSer.length).toBe(expected.length);
         expect<StaticArray<u8>>(aSelSer).toStrictEqual(expected);
+    });
+});
+
+describe("AbiEncode", () => {
+    it("test u8", () => {
+        let v2: u8 = 42;
+        let _expected: Array<u8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42,
+        ];
+        let encode = new AbiEncode().add(v2);
+        let enc = encode.serialize();
+
+        let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
+
+        expect<i32>(expected.length).toBe(32);
+        expect<i32>(enc.length).toBe(expected.length);
+        expect<StaticArray<u8>>(enc).toStrictEqual(expected);
+    });
+    it("test u16", () => {
+        let v2: u16 = 65535;
+        let _expected: Array<u8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255,
+        ];
+        let encode = new AbiEncode().add(v2);
+        let enc = encode.serialize();
+
+        let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
+
+        expect<i32>(expected.length).toBe(32);
+        expect<i32>(enc.length).toBe(expected.length);
+        expect<StaticArray<u8>>(enc).toStrictEqual(expected);
+    });
+    it("test u256", () => {
+        let v2: u256 = u256.Max;
+        v2 = v2.postDec();
+        let _expected: Array<u8> = [
+            255, 255, 255, 255, 255, 255, 255, 255,
+            255, 255, 255, 255, 255, 255, 255, 255,
+            255, 255, 255, 255, 255, 255, 255, 255,
+            255, 255, 255, 255, 255, 255, 255, 254
+        ];
+        let encode = new AbiEncode().add(v2);
+        let enc = encode.serialize();
+
+        let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
+
+        expect<i32>(expected.length).toBe(32);
+        expect<i32>(enc.length).toBe(expected.length);
+        expect<StaticArray<u8>>(enc).toStrictEqual(expected);
+    });
+    it("test str 1", () => {
+        let v2 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab";
+        assert(v2.length == 32);
+
+        let _expected: Array<u8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, // 32 (offset)
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, // 32 (str as bytes len)
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 98, // aaaa...ab (bytes)
+        ];
+
+        let encode = new AbiEncode().add(v2);
+        let enc = encode.serialize();
+
+        let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
+
+        // log<string>("enc:");
+        // log<i32>(enc.length);
+        // log<string>(enc.toString());
+        // log<string>("expected");
+        // log<string>(expected.toString());
+        // log<string>("=== 1");
+
+        // 32 (magic num?) + 32 (v2 size) + 32 (v2 len)
+        expect<i32>(expected.length).toBe(96);
+        expect<i32>(enc.length).toBe(expected.length);
+        expect<StaticArray<u8>>(enc).toStrictEqual(expected);
+    });
+
+    it("test str 2 (> 32)", () => {
+        let v2 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabaaaaaaaaaaaaaaaaaaac";
+        assert(v2.length == 52);
+
+        let _expected: Array<u8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, // 32 (offset)
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52, // 32 (str as bytes len)
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 98, // aaa...ab
+
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 97, 97, 97, 97, 97,
+            97, 97, 97, 99, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, // a...ac
+        ];
+
+        let encode = new AbiEncode().add(v2);
+        let enc = encode.serialize();
+
+        let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
+
+        // 32 (magic num?) + 32 (v2 size) + 32 (v2 len)
+        expect<i32>(expected.length).toBe(128);
+        expect<i32>(enc.length).toBe(expected.length);
+        expect<StaticArray<u8>>(enc).toStrictEqual(expected);
+    });
+});
+
+describe("EvmAddress tests", () => {
+
+    it("test from u8[]", () => {
+
+        // ~ Solidity
+        // address addr1 = 0x0000000000000000000000000000000000000001;
+        // uint160(addr1) -> 1
+        // address addr2 = 0x0000000000000000000000000000000000000010;
+        // uint160(addr2) -> 16
+        // address a3 = 0x1000000000000000000000000000000000000000;
+        // address a4 = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+        // address a5 = 0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF;
+
+        let _evm_addr1: Array<u8> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
+        let _evm_addr2: Array<u8> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0];
+        let _evm_addr3: Array<u8> = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let _evm_addr4: Array<u8> = [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 254];
+        let _evm_addr5: Array<u8> = [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255];
+
+        let evm_addr_value1 = new EvmAddress(StaticArray.fromArray(_evm_addr1)).toU256();
+        let evm_addr_value2 = new EvmAddress(StaticArray.fromArray(_evm_addr2)).toU256();
+        let evm_addr_value3 = new EvmAddress(StaticArray.fromArray(_evm_addr3)).toU256();
+        let evm_addr_value4 = new EvmAddress(StaticArray.fromArray(_evm_addr4)).toU256();
+        let evm_addr_value5 = new EvmAddress(StaticArray.fromArray(_evm_addr5)).toU256();
+
+        assert(evm_addr_value2 > evm_addr_value1);
+        assert(evm_addr_value3 > evm_addr_value2);
+        assert(evm_addr_value4 > evm_addr_value3);
+        assert(evm_addr_value5 > evm_addr_value4);
+    });
+
+
+    it("test fromHex", () => {
+        let evm_addr = EvmAddress.fromHex("0000000000000000000000000000000000000001");
+        let evm_addr_value1 = evm_addr.toU256();
+        assert(evm_addr_value1 == u256.One);
+
+
+        let evm_addr2 = EvmAddress.fromHex("97DBc63e611ad6135514dDCE138a8CDC8d1960eb");
+        // from python3: print(list(bytearray.fromhex("97DBc63e611ad6135514dDCE138a8CDC8d1960eb")))
+        let _expected: Array<u8> = [151, 219, 198, 62, 97, 26, 214, 19, 85, 20, 221, 206, 19, 138, 140, 220, 141, 25, 96, 235];
+        let expected = StaticArray.fromArray(_expected);
+        // serialize() add 32 bits length (4 bytes) so we need to slice it before checking ==
+        expect(evm_addr2.serialize().slice<StaticArray<u8>>(4)).toStrictEqual(expected);
+    });
+
+    it("test fromHex 2", () => {
+        let evm_addr = EvmAddress.fromHex("0x0000000000000000000000000000000000000001");
+        let evm_addr_value1 = evm_addr.toU256();
+        assert(evm_addr_value1 == u256.One);
+
+        let evm_addr2 = EvmAddress.fromHex("97DBc63e611ad6135514dDCE138a8CDC8d1960eb");
+        // from python3: print(list(bytearray.fromhex("97DBc63e611ad6135514dDCE138a8CDC8d1960eb")))
+        let _expected: Array<u8> = [151, 219, 198, 62, 97, 26, 214, 19, 85, 20, 221, 206, 19, 138, 140, 220, 141, 25, 96, 235];
+        let expected = StaticArray.fromArray(_expected);
+        // serialize() add 32 bits length (4 bytes) so we need to slice it before checking ==
+        expect(evm_addr2.serialize().slice<StaticArray<u8>>(4)).toStrictEqual(expected);
+    });
+
+
+    it("test fromHex 2", () => {
+        let evm_addr_1 = EvmAddress.fromHex("0x0000000000000000000000000000000000000001");
+        let evm_addr_2 = EvmAddress.fromHex("0x0000000000000000000000000000000000000001");
+        let evm_addr_3 = EvmAddress.fromHex("97DBc63e611ad6135514dDCE138a8CDC8d1960eb");
+        let evm_addr_4 = EvmAddress.fromHex("0x0000000000000000000000000000000000000000");
+        let evm_addr_5 = EvmAddress.fromHex("0x3000000000000000000000000000000000000000");
+
+        // expect(evm_addr_1).toBe(evm_addr_2);
+        assert(evm_addr_1 == evm_addr_2);
+        assert(evm_addr_1 != evm_addr_3);
+        assert(evm_addr_1 != evm_addr_4);
+        assert(evm_addr_1 != evm_addr_5);
+    });
+});
+
+describe("bytes32 -> u256", () => {
+    it("test 1", () => {
+
+        let _val0_: Array<u8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+        ];
+        let _val0 = StaticArray.fromArray(_val0_);
+        let val0 = u256.fromUint8ArrayBE(wrapStaticArray(_val0));
+
+        assert(val0 == u256.One);
+
+        // Solidity:
+        // 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
+        // python3:
+        // l1 = bytearray.fromhex("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0");
+        // print(list(l1))
+        let _val1_: Array<u8> = [127, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 93, 87, 110, 115, 87, 164, 80, 29, 223, 233, 47, 70, 104, 27, 32, 160];
+        let _val1 = StaticArray.fromArray(_val1_);
+        let val1 = bytes32ToU256(_val1);
+
+        // +1
+        let _val2_: Array<u8> = [127, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 93, 87, 110, 115, 87, 164, 80, 29, 223, 233, 47, 70, 104, 27, 32, 161];
+        let _val2 = StaticArray.fromArray(_val2_);
+        let val2 = bytes32ToU256(_val2);
+
+        // + ...
+        let _val3_: Array<u8> = [128, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 93, 87, 110, 115, 87, 164, 80, 29, 223, 233, 47, 70, 104, 27, 32, 160];
+        let _val3 = StaticArray.fromArray(_val3_);
+        let val3 = bytes32ToU256(_val3);
+
+        assert(val1 > val0);
+        assert(val2 > val1);
+        assert(val3 > val2);
     });
 });

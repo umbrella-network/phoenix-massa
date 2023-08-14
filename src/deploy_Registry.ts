@@ -17,6 +17,27 @@ const __dirname = path.dirname(path.dirname(__filename));
 
 const { client, account } = await getClient();
 
+console.log("Now Deploying StakingBankStatic contract...");
+const deploy_bank = await deploySC(
+    process.env.JSON_RPC_URL_PUBLIC!,
+    account,
+    [
+        {
+            data: readFileSync(path.join(__dirname, 'build', 'StakingBankStaticDev.wasm')),
+            coins: fromMAS(0.1),
+            args: new Args().addU256(BigInt(2)),
+        },
+    ],
+    0n, // fees
+    4_200_000_000n, // max gas
+    true, // wait for the first event to be emitted and print it into the console.
+);
+
+const bankAddr = getContractAddressfromDeploy(deploy_bank);
+
+// const bankAddr = "AS12fS1S1PBMipfevxisr6chL1BGQYb5ijf6EhtTStB9sSjTqF8ds";
+console.log("StakingBankStatic address:", bankAddr);
+
 console.log("Now Deploying Registry contract...");
 const deploy_registry = await deploySC(
     process.env.JSON_RPC_URL_PUBLIC!,
@@ -36,42 +57,7 @@ const deploy_registry = await deploySC(
 const registryAddr = getContractAddressfromDeploy(deploy_registry);
 console.log("Registry address:", registryAddr);
 
-/*
-// TODO: import from web3-utils
-export function strToBytes(str: string): Uint8Array {
-  if (!str.length) {
-    return new Uint8Array(0);
-  }
-  return new Uint8Array(Buffer.from(str, 'utf-8'));
-}
-*/
-
-/*
-// TODO: move this to another file
-class Name implements ISerializable<Name> {
-    private arr: Uint8Array = new Uint8Array(0);
-
-    constructor(arr: Uint8Array) {
-        this.arr = arr;
-    }
-
-    serialize(): Uint8Array {
-        let args = new Args().addUint8Array(this.arr);
-        return new Uint8Array(args.serialize());
-    }
-    deserialize(data: Uint8Array, offset: number): IDeserializedResult<Name> {
-        const args = new Args(data, offset);
-        this.arr = args.nextUint8Array();
-        return { instance: this, offset: args.getOffset() };
-    }
-}
-*/
-
-// Dummy data
-const bankAddr = "AS12fS1S1PBMipfevxisr6chL1BGQYb5ijf6EhtTStB9sSjTqF8ds";
-
 // STAKING_BANK as Bytes32
-// let bank_name: Uint8Array = new Uint8Array([83, 84, 65, 75, 73, 78, 71, 95, 66, 65, 78, 75, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 let bank_name: Uint8Array = new Bytes32().addString("STAKING_BANK").serialize();
 let _names: Array<wBytes> = [new wBytes(bank_name)];
 let _destinations: Array<string> = [bankAddr];
