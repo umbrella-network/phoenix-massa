@@ -82,12 +82,13 @@ class UmbrellaFeedsReader {
 
             Storage.set(REGISTRY_KEY, stringToBytes(_registry.toString()));
             Storage.set(UMBRELLA_FEEDS_KEY, stringToBytes(_umbrellaFeeds.toString()));
-            Storage.set(DESCRIPTION_KEY, stringToBytes(_key));
+            // Storage.set(DESCRIPTION_KEY, stringToBytes(_key));
 
             let decimals = call(_umbrellaFeeds, "DECIMALS", new Args(), 0);
             Storage.set(DECIMALS_KEY, decimals);
 
             let hash = keccak256(new AbiEncodePacked().add(_key).serialize());
+            // TODO - OPTIM: if hash.len == 32, no need to use Bytes32
             assert(hash.length == 32);
             let key = new Bytes32().add(hash).serialize();
             Storage.set(KEY_KEY, key);
@@ -209,10 +210,10 @@ class UmbrellaFeedsReader {
 
 export function constructor(_args: StaticArray<u8>): void {
     let args = new Args(_args);
-    let _registry = args.nextSerializable<Address>().expect("Cannot deser Address");
-    let _umbrellaFeeds = args.nextSerializable<Address>().expect("Cannot deser Address");
+    let _registry = args.nextString().expect("Cannot deser str _reg");
+    let _umbrellaFeeds = args.nextString().expect("Cannot deser str umbf");
     let _key: string = args.nextString().expect("Cannot deser str");
-    new UmbrellaFeedsReader(true, _registry, _umbrellaFeeds, _key);
+    new UmbrellaFeedsReader(true, new Address(_registry), new Address(_umbrellaFeeds), _key);
 }
 
 export function decimals(): StaticArray<u8> {

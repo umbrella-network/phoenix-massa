@@ -59,7 +59,7 @@ class UmbrellaFeedsReaderFactory {
     constructor(init: bool = false, _registry: Address = new Address()) {
         if (init) {
             assert(Context.isDeployingContract());
-            assert(_registry != new Address("0")); // EmptyAddress
+            assert(_registry != new Address()); // EmptyAddress
             isRegistry(_registry);
             // Registry contract
             Storage.set(REGISTRY_KEY, stringToBytes(_registry.toString()));
@@ -78,16 +78,13 @@ class UmbrellaFeedsReaderFactory {
     // function deploy(string memory _feedName) external returns (UmbrellaFeedsReader reader)
     deploy(_feedName: string): Address {
 
-        // generateEvent("[deploy] calling deployed");
         let readerAddr = this.deployed(_feedName);
-        // generateEvent("[deploy] deployed done");
-        let registryAddr = new Address(bytesToString(Storage.get(REGISTRY_KEY)));
-        // generateEvent("[deploy] registryAddr done");
+
+        let registryAddrStr = bytesToString(Storage.get(REGISTRY_KEY));
+        let registryAddr = new Address(registryAddrStr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args().add("UmbrellaFeeds"), 0);
 
-        // generateEvent("[deploy] checking readerAddr");
         if (readerAddr.isOk()) {
-            // generateEvent("[deploy] isOk");
             let _readerAddr: Address = readerAddr.unwrap();
             let _umbrellaFeedsAddrFromReader = call(_readerAddr, "UMBRELLA_FEEDS", new Args(), 0);
 
@@ -96,24 +93,26 @@ class UmbrellaFeedsReaderFactory {
             }
         }
 
-        //generateEvent("[deploy] is not Ok");
-        let _readerAddr = createSC(fileToByteArray("build/UmbrellaFeedsReader.wasm"));
+        let _umbfReaderAddr = createSC(fileToByteArray("build/UmbrellaFeedsReader.wasm"));
         // FIXME: fromMAS ?
-        transferCoins(_readerAddr, 9_000_000_000);
+        transferCoins(_umbfReaderAddr, 9_000_000_000);
+
+        // FIXME: bug from createSC ? there is the length first?
+        let umbrellaFeedsAddrStr = bytesToString(_umbrellaFeedsAddr.slice<StaticArray<u8>>(4));
         // Calling SC constructor
-        let readerConstructorArgs = new Args()
-            .add(registryAddr)
-            .add(_umbrellaFeedsAddr)
+        let umbfReaderConstructorArgs = new Args()
+            .add(registryAddrStr)
+            .add(umbrellaFeedsAddrStr)
             .add(_feedName);
-        let _ = call(_readerAddr, "constructor", readerConstructorArgs, 100);
 
-        // TODO: _hash
-        // let readerKey = this._hash(_feedName);
-        let readerKey = new Bytes32().add(_feedName).serialize();
-        StorageSetReader(readerKey, _readerAddr);
+        let _ = call(_umbfReaderAddr, "constructor", umbfReaderConstructorArgs, 100);
 
-        LogNewUmbrellaFeedsReader(_readerAddr, _feedName);
-        return _readerAddr;
+        let readerKey = this._hash(_feedName);
+        // let readerKey = new Bytes32().add(_feedName).serialize();
+        StorageSetReader(readerKey, _umbfReaderAddr);
+
+        LogNewUmbrellaFeedsReader(_umbfReaderAddr, _feedName);
+        return _umbfReaderAddr;
     }
 
     // function deployed(string memory _feedName) public view returns (UmbrellaFeedsReader)
@@ -138,10 +137,11 @@ class UmbrellaFeedsReaderFactory {
 }
 
 export function constructor(_args: StaticArray<u8>): void {
-    let registyAddr: Address = new Args(_args)
-        .nextSerializable<Address>()
-        .expect("Cannot deser Address");
-    new UmbrellaFeedsReaderFactory(true, registyAddr);
+    let _registryAddr = new Args(_args)
+        .nextString()
+        .expect("Cannot deser string");
+    let registryAddr: Address = new Address(_registryAddr);
+    new UmbrellaFeedsReaderFactory(true, registryAddr);
 }
 
 export function getName(): StaticArray<u8> {
