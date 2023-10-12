@@ -11,6 +11,6 @@ import {
 
 export function isStakingBankStatic(sc: Address): bool {
     isStakingBank(sc);
-    assert(functionExists(sc, "verifyValidators"), "No verifVal");
+    assert(functionExists(sc, "verifyValidators"), "No func verifyValidators");
     return true;
 }

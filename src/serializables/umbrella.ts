@@ -8,9 +8,9 @@ export class PriceData implements ISerializable<PriceData> {
   private data: number = 0; // u8
   private heartbeat: number = 0; // u32
   private timestamp: number = 0; // u32
-  private price: number = 0; // u128
+  private price: bigint = BigInt(0); // u128
 
-  constructor(data: number, heartbeat: number, timestamp: number, price: number) {
+  constructor(data: number = 0, heartbeat: number = 0, timestamp: number = 0, price: bigint = BigInt(0)) {
     this.data = data;
     this.heartbeat = heartbeat;
     this.timestamp = timestamp;
@@ -30,7 +30,7 @@ export class PriceData implements ISerializable<PriceData> {
     this.data = parseInt(args.nextU8().toString());
     this.heartbeat = args.nextU32();
     this.timestamp = args.nextU32();
-    this.price = parseInt(args.nextU128().toString());
+    this.price = BigInt(parseInt(args.nextU128().toString()));
     return { instance: this, offset: args.getOffset() };
   }
 }

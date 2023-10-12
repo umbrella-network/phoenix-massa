@@ -7,19 +7,20 @@ import {
 } from "@massalabs/massa-as-sdk";
 
 import {
-    Args,
+    Args, Result,
     Serializable,
     stringToBytes,
     unwrapStaticArray
 } from "@massalabs/as-types";
 import {EvmAddress} from "../utils";
+import {Bytes32} from "../onChainFeeds/UmbrellaFeedsCommon";
 
 
 export class Validator implements Serializable {
-    id: EvmAddress;
+    id: string;
     location: string;
 
-    constructor(id: EvmAddress, location: string) {
+    constructor(id: string, location: string) {
         this.id = id;
         this.location = location;
     }
@@ -33,7 +34,7 @@ export class Validator implements Serializable {
 
     public deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
         const args = new Args(data, offset);
-        this.id = args.nextSerializable<EvmAddress>().expect("Can't deserialize id");
+        this.id = args.nextString().expect("Can't deserialize id");
         this.location = args.nextString().expect("Can't deserialize location");
         return new Result(args.offset);
     }
@@ -69,8 +70,8 @@ export abstract class StakingBankStatic {
     }
 
     // function verifyValidators(address[] calldata _validators) external view returns (bool)
-    verifyValidators(_validators: EvmAddress[]): bool {
-        for(let i=0; i< _validators.length; i++) {
+    verifyValidators(_validators: string[]): bool {
+        for (let i = 0; i < _validators.length; i++) {
             if (!this._isValidator(_validators[i])) {
                 return false;
             }
@@ -84,13 +85,16 @@ export abstract class StakingBankStatic {
     }
 
     // function getAddresses() external view returns (address[] memory)
-    getAddresses(): void {
-        // TODO
+    getAddresses(): string[] {
+        return this._addresses();
     }
 
     // function getBalances() external view returns (uint256[] memory allBalances)
     // TODO
-    // function addresses(uint256 _ix) external view returns (address) {
+    addresses(_ix: i32): string {
+        return this._addresses()[_ix];
+    }
+
     // TODO
     // function validators(address _id) external view virtual returns (address id, string memory location);
     // TODO
@@ -114,9 +118,9 @@ export abstract class StakingBankStatic {
     }
 
     // function _addresses() internal view virtual returns (address[] memory);
-    abstract _addresses(): EvmAddress[];
+    abstract _addresses(): string[];
     // function _isValidator(address _validator) internal view virtual returns (bool);
-    abstract _isValidator(_validator: EvmAddress): bool;
+    abstract _isValidator(_validator: string): bool;
 
     // function _assertValidSetup(uint256 _validatorsCount) internal view virtual
     _assertValidSetup(_validatorsCount: u256): void {

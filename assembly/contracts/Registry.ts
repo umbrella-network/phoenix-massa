@@ -1,14 +1,16 @@
 import { encode as b64Encode, decode } from "as-base64/assembly";
 
 import {
-  Address,
-  Storage,
-  createEvent,
-  generateEvent,
-  callerHasWriteAccess,
-  Context,
-  // abi
-  call
+    Address,
+    Storage,
+    createEvent,
+    generateEvent,
+    callerHasWriteAccess,
+    Context,
+    // abi
+    call,
+    getBytecode,
+    keccak256
 } from "@massalabs/massa-as-sdk";
 
 import {
@@ -157,13 +159,19 @@ export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
         generateEvent(`[requireAndGetAddress] ${addr}`);
     }
 
-    let ret = new Args().add(addr);
-    return ret.serialize();
+    // let ret = new Args().add(addr.toString());
+    // return ret.serialize();
+    return stringToBytes(addr.toString());
 }
 
 export function getAddressByString(args: StaticArray<u8>): StaticArray<u8> {
-    let _name: string = new Args(args).nextString().expect("Cannot desert _name");
+    let _name: string = new Args(args).nextString().expect("Cannot get string (_name)");
     let reg = new Registry();
     let addr = reg.getAddressByString(_name);
-    return new Args().add(addr).serialize();
+    return new Args().add(addr.toString()).serialize();
+}
+
+export function getDeployedBytecodeHash(): StaticArray<u8> {
+    let bytecode = getBytecode();
+    return new Args().add(keccak256(bytecode)).serialize();
 }

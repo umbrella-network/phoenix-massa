@@ -97,7 +97,7 @@ class UmbrellaFeedsReaderFactory {
         // FIXME: fromMAS ?
         transferCoins(_umbfReaderAddr, 9_000_000_000);
 
-        // FIXME: bug from createSC ? there is the length first?
+        // TODO: use Args and deser and Address or a str here...
         let umbrellaFeedsAddrStr = bytesToString(_umbrellaFeedsAddr.slice<StaticArray<u8>>(4));
         // Calling SC constructor
         let umbfReaderConstructorArgs = new Args()

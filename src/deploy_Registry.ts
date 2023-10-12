@@ -1,123 +1,62 @@
-// std
-import { fileURLToPath } from 'url';
-import path from 'path';
-import { readFileSync } from 'fs';
+import {readFileSync, writeFile} from "fs";
+import path from "path";
+import {fileURLToPath} from "url";
 
-// massa
-import { deploySC } from '@massalabs/massa-sc-deployer';
-import { Args, fromMAS } from '@massalabs/massa-web3';
-import { ISerializable, IDeserializedResult, ArrayType } from '@massalabs/massa-web3';
+import {Args, fromMAS} from "@massalabs/massa-web3";
+import {getClient, needDeploy, deploySc, pollEvents, okStatusOrThrow, getScAddressFromEvents} from "./utils";
+import keccak256 from "@indeliblelabs/keccak256";
 
-import { getClient, getContractAddressfromDeploy, waitOperationEvents } from './utils';
-import {Bytes32} from "./serializables/bytes32";
-import {wBytes} from "./serializables/wBytes";
-
+// globals
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(path.dirname(__filename));
+const deployDb: string = "deployed.json";
 
-const { client, account } = await getClient();
+async function main() {
+    // main entry function
 
-console.log("Now Deploying StakingBankStatic contract...");
-const deploy_bank = await deploySC(
-    process.env.JSON_RPC_URL_PUBLIC!,
-    account,
-    [
-        {
-            data: readFileSync(path.join(__dirname, 'build', 'StakingBankStaticDev.wasm')),
-            coins: fromMAS(0.1),
-            args: new Args().addU256(BigInt(2)),
-        },
-    ],
-    0n, // fees
-    4_200_000_000n, // max gas
-    true, // wait for the first event to be emitted and print it into the console.
-);
+    const {client, account} = await getClient();
 
-const bankAddr = getContractAddressfromDeploy(deploy_bank);
+    const jsonString = readFileSync(deployDb, "utf-8");
+    const jsonData = JSON.parse(jsonString);
+    const registryScAddr = jsonData["Registry"];
 
-// const bankAddr = "AS12fS1S1PBMipfevxisr6chL1BGQYb5ijf6EhtTStB9sSjTqF8ds";
-console.log("StakingBankStatic address:", bankAddr);
+    let needDeploy_ = true;
+    const toDeploy = path.join(__dirname, 'build', 'Registry.wasm')
+    if (registryScAddr.length > 0) {
+        const toDeployHash = keccak256(readFileSync(toDeploy));
+        needDeploy_ = await needDeploy(client, registryScAddr, new Uint8Array(toDeployHash));
+    }
+    // console.log(`Need deploy: ${needDeploy_}`);
 
-console.log("Now Deploying Registry contract...");
-const deploy_registry = await deploySC(
-    process.env.JSON_RPC_URL_PUBLIC!,
-    account,
-    [
-        {
-            data: readFileSync(path.join(__dirname, 'build', 'Registry.wasm')),
-            coins: fromMAS(0.2),
-            args: new Args(),
-        },
-    ],
-    0n, // fees
-    4_200_000_000n, // max gas
-    true, // wait for the first event to be emitted and print it into the console.
-);
+    let scAddr = registryScAddr;
+    if (needDeploy_) {
+        console.log("Contract has changed, need to deploy it...");
+        // deploy smart contract
+        let operationId = await deploySc(
+            account,
+            toDeploy,
+            fromMAS(0.2),
+            new Args()
+        );
+        let [opStatus, events] = await pollEvents(client, operationId, true);
+        okStatusOrThrow(opStatus);
+        console.log("[main] events:", events);
+        scAddr = getScAddressFromEvents(events);
 
-const registryAddr = getContractAddressfromDeploy(deploy_registry);
-console.log("Registry address:", registryAddr);
+        // Update deployed DB with new SC address
+        jsonData["Registry"] = scAddr;
+        writeFile(deployDb, JSON.stringify(jsonData, null, 2), (err) => {
+            if (err) {
+                console.log("Error writing file:", err);
+            } else {
+                console.log("Successfully wrote file");
+            }
+        });
+    } else {
+        // console.log("Contract has not changed, no need to deploy it!");
+    }
 
-// STAKING_BANK as Bytes32
-let bank_name: Uint8Array = new Bytes32().addString("STAKING_BANK").serialize();
-let _names: Array<wBytes> = [new wBytes(bank_name)];
-let _destinations: Array<string> = [bankAddr];
-let importAddressesArgs = new Args();
-// add _names
-importAddressesArgs.addSerializableObjectArray(_names);
-// add _destinations
-importAddressesArgs.addArray(_destinations, ArrayType.STRING);
-
-const deployerAccount = client.wallet().getBaseAccount()!;
-console.log(`Calling Registry.importAddresses, contract addr: ${registryAddr}`);
-const operationId1 = await client.smartContracts().callSmartContract(
-    {
-        fee: 0n,
-        maxGas: 10_000_000n,
-        // coins: 1_000_000_000n,
-        coins: 1n,
-        targetAddress: registryAddr,
-        functionName: 'importAddresses',
-        parameter: importAddressesArgs.serialize(),
-        // parameter: new Args().serialize(),
-    },
-    deployerAccount,
-);
-
-console.log(`operationId 1: ${operationId1}`);
-let opIds1: string[] = [];
-opIds1.push(operationId1);
-
-let events1 = await Promise.all(
-    opIds1.map(async (opId) => waitOperationEvents(client, opId)),
-);
-
-if (events1.some((e) => e.some((e) => e.context.is_error))) {
-    throw new Error(`Some operations failed`);
+    console.log("[main] SC address (Registry):", scAddr);
 }
 
-console.log(`Calling Registry.requireAndGetAddress, contract addr: ${registryAddr}`);
-const operationId2 = await client.smartContracts().callSmartContract(
-    {
-        fee: 0n,
-        maxGas: 10_000_000n,
-        // coins: 1_000_000_000n,
-        coins: 1n,
-        targetAddress: registryAddr,
-        functionName: 'requireAndGetAddress',
-        parameter: new Args().addSerializable(new wBytes(bank_name)).serialize(),
-        // parameter: new Args().serialize(),
-    },
-    deployerAccount,
-);
-
-console.log(`operationId 2: ${operationId2}`);
-let opIds2: string[] = [];
-opIds2.push(operationId2);
-
-let events2 = await Promise.all(
-    opIds2.map(async (opId) => waitOperationEvents(client, opId)),
-);
-
-if (events2.some((e) => e.some((e) => e.context.is_error))) {
-    throw new Error(`Some operations failed`);
-}
+main();

@@ -18,6 +18,6 @@ export function isStakingBank(sc: Address): bool {
 
     // assert(functionExists(sc, "getNumberOfValidators"));
     // assert(functionExists(sc, "addresses"));
-    assert(functionExists(sc, "validators"));
+    assert(functionExists(sc, "validators"), "No func validators");
     return true;
 }

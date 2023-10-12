@@ -1,6 +1,7 @@
 import {Args, Result, Serializable, wrapStaticArray} from "@massalabs/as-types";
 import {u256} from "as-bignum/assembly";
 import {Address, balance, generateEvent, getKeys, setBytecode, Storage, transferCoins} from "@massalabs/massa-as-sdk";
+import {decode as b58Decode} from "as-base58/assembly";
 
 export class wBytes implements Serializable {
     protected data: StaticArray<u8>
@@ -96,4 +97,12 @@ export function selfDestruct(transferToAddr: Address): void {
     if (scBalance > 0) {
         transferCoins(transferToAddr, scBalance);
     }
+}
+
+export function publicKeyToU256(pk: string): u256 {
+    // Remove 'P'
+    let pkDecoded = b58Decode(pk.slice(1));
+    // Remove version (0) and b58 checksum (at the end)
+    let pkb32 = pkDecoded.slice(1, pkDecoded.length - 4);
+    return u256.fromUint8ArrayLE(pkb32);
 }
