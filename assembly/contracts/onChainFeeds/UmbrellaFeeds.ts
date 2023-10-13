@@ -246,6 +246,7 @@ class UmbrellaFeeds {
                 ;
 
         let digest = b64Encode(wrapStaticArray(keccak256(priceDataHash.serialize())));
+        // generateEvent(`[update] digest: ${digest}`);
         this.verifySignatures(digest, _signatures, _pubKeys);
 
         let i = 0;
@@ -262,7 +263,7 @@ class UmbrellaFeeds {
 
             // we do not allow for older prices
             // at the same time it prevents from reusing signatures
-            assert(stored_price_data.timestamp < _price_data.timestamp, "ts not <"); // OldData
+            assert(stored_price_data.timestamp < _price_data.timestamp, "OldData"); // OldData
 
             StorageSetPriceData(_price_key, _price_data);
             i+=1;
@@ -427,10 +428,11 @@ class UmbrellaFeeds {
             // generateEvent(`sig ${i}: ${_signatures[i]}`);
             // generateEvent("===");
 
-            assert(isSignatureValid(_pubKeys[i], _hash, _signatures[i]), "Sig is not valid BB");
+            assert(isSignatureValid(_pubKeys[i], _hash, _signatures[i]), "Sig is not valid");
 
             let signer = publicKeyToU256(_pubKeys[i]);
             assert(signer > prevSigner, "Sig out of order");
+            prevSigner = signer;
         }
 
         let _stakingBankAddr = Storage.get(STAKING_BANK_KEY)
@@ -503,7 +505,6 @@ export function update(_args: StaticArray<u8>): void {
     let _priceKeys: Array<wBytes> = args
         .nextSerializableObjectArray<wBytes>()
         .expect("Cannot get _priceKeys");
-
     let _priceDatas = args
         .nextSerializableObjectArray<PriceData>()
         .expect("Cannot get _priceDatas");

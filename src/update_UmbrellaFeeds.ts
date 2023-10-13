@@ -1,6 +1,6 @@
 import {getClient, okStatusOrThrow, pollEvents} from "./utils";
 import {readFileSync} from "fs";
-import {Client, Args, ISignature, NativeType, ArrayType, IReadData} from "@massalabs/massa-web3";
+import {Client, Args, ISignature, NativeType, ArrayTypes, IReadData} from "@massalabs/massa-web3";
 import keccak256 from "@indeliblelabs/keccak256";
 import {wBytes} from "./serializables/wBytes";
 import {PriceData} from "./serializables/umbrella";
@@ -23,8 +23,8 @@ async function main() {
     console.log("[main] Updating prices...");
     let operationId = await updatePrices(client, umbfScAddr, updateArgs);
     let [opStatus, events] = await pollEvents(client, operationId, true);
-    okStatusOrThrow(opStatus);
     console.log("[main] events:", events);
+    okStatusOrThrow(opStatus);
 
     // Test hashData
     {
@@ -61,6 +61,7 @@ async function main() {
     // Test getManyPriceDataRaw
     let prices = await getManyPriceDataRaw(client, umbfScAddr, ["BTC-USD", "ETH-USD", "X42-USD"]);
     console.log("prices:", prices);
+    process.exit(0);
 }
 
 main();
@@ -104,10 +105,10 @@ async function dummyPrices(client: Client, umbfAddr: string): Promise<Args> {
     let sig2: ISignature = await wallet.signMessage(toSig, process.env.VALIDATOR_1_ADDRESS!);
     let _signatures: Array<NativeType> = [sig1.base58Encoded, sig2.base58Encoded];
     // console.log("_signatures:", _signatures);
-    updateArgs.addArray(_signatures, ArrayType.STRING);
+    updateArgs.addArray(_signatures, ArrayTypes.STRING);
     let _pubKeys: Array<NativeType> = [process.env.VALIDATOR_0_PUBLIC_KEY!, process.env.VALIDATOR_1_PUBLIC_KEY!]
     // console.log("_pubKeys:", _pubKeys);
-    updateArgs.addArray(_pubKeys, ArrayType.STRING);
+    updateArgs.addArray(_pubKeys, ArrayTypes.STRING);
 
     return updateArgs;
 }
