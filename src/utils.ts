@@ -64,13 +64,13 @@ export async function pollEvents(client: Client, operationId: string, final: boo
 
     const finalSuccess = client
         .smartContracts()
-        .awaitRequiredOperationStatus(operationId, EOperationStatus.FINAL);
+        .awaitRequiredOperationStatus(operationId, EOperationStatus.FINAL_SUCCESS);
 
-    // const finalError = client
-    //     .smartContracts()
-    //     .awaitRequiredOperationStatus(operationId, EOperationStatus.FINAL_ERROR);
+    const finalError = client
+        .smartContracts()
+        .awaitRequiredOperationStatus(operationId, EOperationStatus.FINAL_ERROR);
 
-    const finalResult = await Promise.race([finalSuccess]);
+    const finalResult = await Promise.race([finalSuccess, finalError]);
     // console.log("[pollEvents] status returned:", EOperationStatus[finalResult]);
     result = finalResult;
 
@@ -90,7 +90,7 @@ export async function pollEvents(client: Client, operationId: string, final: boo
 }
 
 export function okStatusOrThrow(status: EOperationStatus, context: string = "") {
-    if (status != EOperationStatus.FINAL) {
+    if (status != EOperationStatus.FINAL_SUCCESS) {
         throw new Error(`Speculative error or final error (status: ${status.toString()}), context: ${context}`);
     }
 }

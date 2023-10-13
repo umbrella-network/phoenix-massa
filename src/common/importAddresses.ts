@@ -1,4 +1,4 @@
-import {Args, ArrayType, Client} from "@massalabs/massa-web3";
+import {Args, ArrayTypes, Client} from "@massalabs/massa-web3";
 import {Bytes32} from "../serializables/bytes32";
 import {wBytes} from "../serializables/wBytes";
 import {DeployedContracts, getDeployedContracts} from "./deployed";
@@ -14,7 +14,7 @@ export async function importAddresses(client: Client, contractName: keyof Deploy
   // add _names
   importAddressesArgs.addSerializableObjectArray(_names);
   // add _destinations
-  importAddressesArgs.addArray(_destinations, ArrayType.STRING);
+  importAddressesArgs.addArray(_destinations, ArrayTypes.STRING);
   // console.log("importAddressesArgs");
   // console.log(importAddressesArgs);
 

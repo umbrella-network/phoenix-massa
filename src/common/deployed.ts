@@ -1,4 +1,4 @@
-import {readFileSync} from "fs";
+import {readFileSync, writeFileSync} from "fs";
 import path from "path";
 import {fileURLToPath} from "url";
 
@@ -9,10 +9,15 @@ export type DeployedContracts = {
   UmbrellaFeeds:string;
 }
 
-export function getDeployedContracts(): DeployedContracts {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(path.dirname(__filename));
-  const jsonString = readFileSync(__dirname + '/../deployed.json', "utf-8");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(path.dirname(__filename));
+const file = __dirname + '/../deployed.json';
 
-  return JSON.parse(jsonString);
+export function getDeployedContracts(): DeployedContracts {
+  const jsonString = readFileSync(file, "utf-8");
+  return jsonString ? JSON.parse(jsonString) : {};
+}
+
+export function saveDeployedContracts(data: DeployedContracts): void {
+  writeFileSync(file, JSON.stringify(data, null, 2));
 }

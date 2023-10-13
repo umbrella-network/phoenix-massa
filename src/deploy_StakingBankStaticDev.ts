@@ -2,31 +2,30 @@ import {readFileSync, writeFile} from "fs";
 import path from "path";
 import {fileURLToPath} from "url";
 
-import {Args, ArrayType, Client, fromMAS, IReadData} from "@massalabs/massa-web3";
+import {Args, ArrayTypes, Client, fromMAS, IReadData} from "@massalabs/massa-web3";
 import {getClient, needDeploy, deploySc, pollEvents, okStatusOrThrow, getScAddressFromEvents} from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {Bytes32} from "./serializables/bytes32";
 import {wBytes} from "./serializables/wBytes";
+import {getDeployedContracts, saveDeployedContracts} from "./common/deployed";
 
 // globals
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(path.dirname(__filename));
-const deployDb: string = "deployed.json";
 
 async function main() {
     // main entry function
 
     const {client, account} = await getClient();
 
-    const jsonString = readFileSync(deployDb, "utf-8");
-    const jsonData = JSON.parse(jsonString);
+    const jsonData = getDeployedContracts();
     const bankKey = "StakingBankStaticDev"
     const bankScAddr = jsonData[bankKey];
-    const registryAddr = jsonData["Registry"];
+    const registryAddr = jsonData.Registry;
 
     let needDeploy_ = true;
     const toDeploy = path.join(__dirname, 'build', 'StakingBankStaticDev.wasm')
-    if (bankScAddr.length > 0) {
+    if (bankScAddr) {
         const toDeployHash = keccak256(readFileSync(toDeploy));
         needDeploy_ = await needDeploy(client, bankScAddr, new Uint8Array(toDeployHash));
     }
@@ -51,14 +50,8 @@ async function main() {
 
         // Update deployed DB with new SC address
         jsonData[bankKey] = scAddr;
-        writeFile(deployDb, JSON.stringify(jsonData, null, 2), (err) => {
-            if (err) {
-                console.log("Error writing file:", err);
-            } else {
-                console.log("Successfully wrote file");
-            }
-        });
-
+        saveDeployedContracts(jsonData);
+        console.log("Successfully wrote file");
         // Update Registry with newly deployed StakingBankStaticDev
         console.log(`Updating Registry (Registry.importAddresses)...`);
         const operationId2 = await updateRegistry(client, registryAddr, scAddr);
@@ -77,6 +70,8 @@ async function main() {
 
     const addresses = await getAddresses(client, scAddr);
     console.log("addresses:", addresses);
+    // tmp force exit
+    process.exit(0);
 }
 
 main();
@@ -91,7 +86,7 @@ async function updateRegistry(client: Client, registryAddr: string, bankAddr: st
     // add _names
     importAddressesArgs.addSerializableObjectArray(_names);
     // add _destinations
-    importAddressesArgs.addArray(_destinations, ArrayType.STRING);
+    importAddressesArgs.addArray(_destinations, ArrayTypes.STRING);
     // console.log("importAddressesArgs");
     // console.log(importAddressesArgs);
 
@@ -124,7 +119,7 @@ async function getAddresses(client: Client, scAddr: string) {
     }
     const resp = await client.smartContracts().readSmartContract(readData);
     console.log("resp", resp);
-    const addresses = new Args(resp.returnValue).nextArray(ArrayType.STRING);
+    const addresses = new Args(resp.returnValue).nextArray(ArrayTypes.STRING);
     return addresses;
 }
 

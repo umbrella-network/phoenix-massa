@@ -21,9 +21,9 @@ import {EvmAddress} from "../utils";
 // const VALIDATOR_0 = EvmAddress.fromHex("0xDc3eBc37DA53A644D67E5E3b5BA4EEF88D969d5C");
 // const VALIDATOR_1 = EvmAddress.fromHex("0x998cb7821e605cC16b6174e7C50E19ADb2Dd2fB0");
 // Validator 0 Public Key
-const VALIDATOR_0: string = "P1A8NuAPycwfdTiPVr75enmSUW2dRotcxCHiR1LSpZduHLDiERm";
+const VALIDATOR_0: string = "AU15116pRS3XBXoisnThhbfPTBQD8wpbRRbmjG6btBQ8JiSYrzdR";
 // Validator 1 Public Key
-const VALIDATOR_1: string = "P1dU2kKBMNRsnV2FNr4PVkXDFzUbVPHN5QLxSuo7X6vaYt5Gip7";
+const VALIDATOR_1: string = "AU12p1s85rfExFDa949jHqGTLJVGoZTsSs59j6ukhHrRKqGFTJhJx";
 
 class StakingBankStaticDev extends StakingBankStatic {
 
