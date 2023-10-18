@@ -59,8 +59,11 @@ async function main() {
         okStatusOrThrow(opStatus2);
 
         // Registry getAddressByString check
-        // const scAddr2 = await registryGetAddressByString(client, registryAddr);
-        // console.log("scAddr2:", scAddr);
+        const scAddr2 = await registryGetAddressByString(client, registryAddr);
+        console.log("scAddr2:", scAddr2);
+        // Registry getAddressByString check (expect no assert and return empty Address)
+        const fooAddr = await registryGetAddressByString(client, registryAddr, "FOO");
+        console.log("fooAddr:", fooAddr, "--");
 
     } else {
         // console.log("Contract has not changed, no need to deploy it!");
@@ -123,13 +126,13 @@ async function getAddresses(client: Client, scAddr: string) {
     return addresses;
 }
 
-async function registryGetAddressByString(client: Client, registryAddr: string) {
+async function registryGetAddressByString(client: Client, registryAddr: string, query: string = "STAKING_BANK") {
 
     let readData: IReadData = {
         maxGas: BigInt(10_000_000),
         targetAddress: registryAddr,
         targetFunction: "getAddressByString",
-        parameter: new Args().addString("STAKING_BANK").serialize(),
+        parameter: new Args().addString(query).serialize(),
     }
     const resp = await client.smartContracts().readSmartContract(readData);
     // console.log("resp", resp);

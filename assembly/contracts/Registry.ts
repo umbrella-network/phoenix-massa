@@ -101,14 +101,25 @@ class Registry {
     // function getAddress(bytes32 _bytes) external view returns (address)
     getAddress(_bytes: StaticArray<u8>): Address {
         assert(_bytes.length == 32);
-        let _foundAddress = Storage.get(_bytes);
-        return new Args(_foundAddress).nextSerializable<Address>().expect("Cannot get Address");
+        let _foundAddress = new Address();
+        if (Storage.has(_bytes)) {
+            _foundAddress = new Args(Storage.get(_bytes))
+                .nextSerializable<Address>()
+                .expect("Cannot get Address");
+        }
+        return _foundAddress;
     }
 
     // function getAddressByString(string memory _name) public view returns (address)
     getAddressByString(_name: string): Address {
-        let _foundAddress = Storage.get(this.stringToBytes32(_name));
-        return new Args(_foundAddress).nextSerializable<Address>().expect("Cannot get Address");
+        let _name32 = this.stringToBytes32(_name);
+        let _foundAddress = new Address();
+        if (Storage.has(_name32)) {
+            _foundAddress = new Args(Storage.get(_name32))
+                .nextSerializable<Address>()
+                .expect("Cannot get Address");
+        }
+        return _foundAddress;
     }
 
     // function stringToBytes32(string memory _string) public pure returns (bytes32 result)
@@ -164,6 +175,12 @@ export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
     return stringToBytes(addr.toString());
 }
 
+export function getAddress(args: StaticArray<u8>): StaticArray<u8> {
+    let _name = new Args(args).nextBytes().expect("Cannot get bytes (_name)");
+    let reg = new Registry();
+    let addr = reg.getAddress(_name);
+    return new Args().add(addr.toString()).serialize();
+}
 export function getAddressByString(args: StaticArray<u8>): StaticArray<u8> {
     let _name: string = new Args(args).nextString().expect("Cannot get string (_name)");
     let reg = new Registry();

@@ -255,12 +255,7 @@ class UmbrellaFeeds {
             assert(_price_key.length == 32);
             let _price_data = _priceDatas[i];
             // Note: Solidity Mapping always returns a value so here we return a Result
-            let _stored_price_data = StorageGetSomePriceData(_price_key);
-            let stored_price_data = new PriceData(0, 0, 0, u128.Zero);
-            if (_stored_price_data.isOk()) {
-                stored_price_data = _stored_price_data.unwrap();
-            }
-
+            let stored_price_data = StorageGetPriceDataOrDefault(_price_key);
             // we do not allow for older prices
             // at the same time it prevents from reusing signatures
             assert(stored_price_data.timestamp < _price_data.timestamp, "OldData"); // OldData
@@ -276,7 +271,7 @@ class UmbrellaFeeds {
         let data = new Array<PriceData>(_keys.length);
         for (let i = 0; i < _keys.length; i++) {
             let _key = _keys[i];
-            data[i] = StorageGetPriceData(_key);
+            data[i] = StorageGetPriceDataOrDefault(_key);
             assert(data[i].timestamp == 0); // FeedNotExist()
         }
         return data;
@@ -295,20 +290,13 @@ class UmbrellaFeeds {
 
     // function prices(bytes32 _key) external view returns (PriceData memory data)
     prices(_key: StaticArray<u8>): PriceData {
-        // Already checked in StorageGetPriceData
-        // assert(_key.length == 32);
-        return StorageGetPriceData(_key);
+        return StorageGetPriceDataOrDefault(_key);
     }
 
     // function getPriceData(bytes32 _key) external view returns (PriceData memory data)
     getPriceData(_key: StaticArray<u8>): PriceData {
-        // Already checked in StorageGetPriceData
-        // assert(_key.length == 32, "Not 32");
-        let data = StorageGetPriceData(_key);
+        let data = StorageGetPriceDataOrDefault(_key);
         assert(data.timestamp != 0, "FeedNotExist"); // FeedNotExist
-        if (ASC_OPTIMIZE_LEVEL == 0) {
-            generateEvent(`[getSomePriceData] ${data}`);
-        }
         return data;
     }
 
@@ -322,7 +310,7 @@ class UmbrellaFeeds {
     getPrice(_key: StaticArray<u8>): u128 {
         // Not needed - done by StorageGetPriceData
         // assert(_key.length, 32);
-        let data = StorageGetPriceData(_key);
+        let data = StorageGetPriceDataOrDefault(_key);
         assert(data.timestamp != 0); // FeedNotExist
         return data.price;
     }
@@ -331,7 +319,7 @@ class UmbrellaFeeds {
     getPriceTimestamp(_key: StaticArray<u8>): PriceTimestamp {
         // Not needed - done by StorageGetPriceData
         // assert(_key.length == 32);
-        let data = StorageGetPriceData(_key);
+        let data = StorageGetPriceDataOrDefault(_key);
         assert(data.timestamp != 0); // FeedNotExist
         return new PriceTimestamp(data.price, data.timestamp);
     }
@@ -343,7 +331,7 @@ class UmbrellaFeeds {
     getPriceTimestampHeartbeat(_key: StaticArray<u8>): PriceTimestampHeartbeat {
         // Not needed - done by get_ds_price
         // assert(_key.length == 32);
-        let data = StorageGetPriceData(_key);
+        let data = StorageGetPriceDataOrDefault(_key);
         assert(data.timestamp != 0); // FeedNotExist
         return new PriceTimestampHeartbeat(data.price, data.timestamp, data.heartbeat)
     }
@@ -352,11 +340,7 @@ class UmbrellaFeeds {
     getPriceDataByName(_name: string): PriceData {
         let args = new AbiEncodePacked().add(_name);
         let key = keccak256(args.serialize());
-        let data = StorageGetPriceData(key);
-        if (ASC_OPTIMIZE_LEVEL == 0) {
-            generateEvent(`[getPriceDataByName] ${data}`);
-        }
-        return data;
+        return this.prices(key);
     }
 
     /// @dev helper method for QA purposes
@@ -378,42 +362,6 @@ class UmbrellaFeeds {
     }
 
     // function verifySignatures(bytes32 _hash, Signature[] calldata _signatures) public view {
-    /*
-    evmVerifySignatures(_hash: StaticArray<u8>, _signatures: Signature[]): void {
-
-        let prevSigner = new EvmAddress();
-
-        let _REQUIRED_SIGNATURES: i32 = fromBytes<u16>(Storage.get(REQUIRED_SIGNATURES_KEY));
-        assert(_signatures.length >= _REQUIRED_SIGNATURES, "NotEnoughSignatures");
-        const validators: Array<EvmAddress> = new Array(_REQUIRED_SIGNATURES);
-
-        const ECDSA_S_MAX = bytes32ToU256(StaticArray.fromArray(_ECDSA_S_MAX));
-
-        // See OpenZepelin impl: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/ECDSA.sol
-        for(let i=0; i< _REQUIRED_SIGNATURES; i++) {
-
-            let _sig = _signatures[i];
-            assert(bytes32ToU256(_sig.s) <= ECDSA_S_MAX, "ECDSAInvalidSginatureS"); // ECDSAInvalidSginatureS
-
-            assert(_sig.v != 27 && _sig.v != 28, "ECDSAInvalidSignatureV"); // ECDSAInvalidSignatureV
-            let signer = this.recoverSigner(_hash, _sig.v, _sig.r, _sig.s);
-            assert(signer.toU256() > prevSigner.toU256(), "SignaturesOutOfOrder");
-
-            prevSigner = signer;
-            validators.push(signer);
-        }
-
-        generateEvent(`[verifySignatures] validators length: ${validators.length}`);
-
-        let stakingBankAddr = new Address(bytesToString(Storage.get(STAKING_BANK_KEY)));
-        isStakingBankStatic(stakingBankAddr);
-        let verifyValidatorsArgs = new Args().addSerializableObjectArray(validators);
-        let _ret = call(stakingBankAddr, "verifyValidators", verifyValidatorsArgs, 0);
-        let ret: bool = new Args(_ret).nextBool().expect("Cannot deser bool");
-        assert(ret == true, "InvalidSigner"); // InvalidSigner
-    }
-    */
-
     verifySignatures(_hash: string, _signatures: string[], _pubKeys: string[]): void {
 
         let _REQUIRED_SIGNATURES: i32 = fromBytes<u8>(Storage.get(REQUIRED_SIGNATURES_KEY));
@@ -455,22 +403,6 @@ class UmbrellaFeeds {
         return u256.from(13119191);
     }
 
-    // function recoverSigner(bytes32 _hash, uint8 _v, bytes32 _r, bytes32 _s) public pure returns (address)
-    /*
-    recoverSigner(_hash: StaticArray<u8>, _v: u8, _r: StaticArray<u8>, _s: StaticArray<u8>): EvmAddress {
-
-        assert(_hash.length == 32);
-        assert(_r.length == 32);
-        assert(_s.length == 32);
-
-        let hash = keccak256(new AbiEncodePacked().add(ETH_PREFIX).add(_hash).serialize());
-        let sigSer = new AbiEncodePacked().add(_r).add(_s).add(_v).serialize();
-        assert(sigSer.length == 65, "SigSer not 65 length");
-        let pubKey = evmGetPubkeyFromSignature(hash, sigSer);
-        return new EvmAddress(evmGetAddressFromPubkey(pubKey));
-    }
-    */
-
     // function getName() public pure returns (bytes32)
     getName(): StaticArray<u8> {
         return new Bytes32().add("UmbrellaFeeds").serialize();
@@ -478,13 +410,20 @@ class UmbrellaFeeds {
 
     // Getter / Setter
     DECIMALS(): u8 {
-        return fromBytes<u8>(Storage.get(DECIMALS_KEY));
+        let decimals = 0;
+        if (Storage.has(DECIMALS_KEY)) {
+            decimals = fromBytes<u8>(Storage.get(DECIMALS_KEY));
+        }
+        return decimals;
     }
 
     REQUIRED_SIGNATURES(): u8 {
-        return fromBytes<u8>(Storage.get(REQUIRED_SIGNATURES_KEY));
+        let required_signatures = 0;
+        if (Storage.has(REQUIRED_SIGNATURES_KEY)) {
+            required_signatures = fromBytes<u8>(Storage.get(REQUIRED_SIGNATURES_KEY));
+        }
+        return required_signatures;
     }
-
 }
 
 export function constructor(_args: StaticArray<u8>): void {
