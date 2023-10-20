@@ -35,6 +35,7 @@
     "deploy:UmbrellaFeedsReaderFactory": "ts-node src/deploy_UmbrellaFeedsReaderFactory.ts",
     "update:UmbrellaFeeds": "ts-node src/update_UmbrellaFeeds.ts",
     "register:UmbrellaFeeds": "ts-node src/register_UmbrellaFeeds.ts",
+    "example:fetch_price": "ts-node src/example_fetch_price.ts",
     "test": "asp"
   },
   "repository": {

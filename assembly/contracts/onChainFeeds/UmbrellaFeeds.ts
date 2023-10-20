@@ -410,7 +410,7 @@ class UmbrellaFeeds {
 
     // Getter / Setter
     DECIMALS(): u8 {
-        let decimals = 0;
+        let decimals: u8 = 0;
         if (Storage.has(DECIMALS_KEY)) {
             decimals = fromBytes<u8>(Storage.get(DECIMALS_KEY));
         }
@@ -418,7 +418,7 @@ class UmbrellaFeeds {
     }
 
     REQUIRED_SIGNATURES(): u8 {
-        let required_signatures = 0;
+        let required_signatures: u8 = 0;
         if (Storage.has(REQUIRED_SIGNATURES_KEY)) {
             required_signatures = fromBytes<u8>(Storage.get(REQUIRED_SIGNATURES_KEY));
         }
@@ -484,6 +484,14 @@ export function getSomePriceData(_key: StaticArray<u8>): StaticArray<u8> {
     let umbrellaFeeds = new UmbrellaFeeds();
     let _priceData = umbrellaFeeds.getSomePriceData(key);
     return new Args().add(_priceData).serialize();
+}
+
+export function getPrice(_args: StaticArray<u8>): StaticArray<u8> {
+    let args = new Args(_args);
+    let key = args.nextBytes().expect("Cannot get _key");
+    let umbrellaFeeds = new UmbrellaFeeds();
+    let _price = umbrellaFeeds.getPrice(key);
+    return new Args().add(_price).serialize();
 }
 
 export function getPriceDataByName(_args: StaticArray<u8>): StaticArray<u8> {
