@@ -16,22 +16,19 @@ import {
     Address, balance,
     call,
     Context,
-    evmGetAddressFromPubkey,
-    evmGetPubkeyFromSignature,
-    generateEvent, getBytecode, isSignatureValid,
+    getBytecode, isSignatureValid,
     keccak256,
     Storage
 } from '@massalabs/massa-as-sdk';
 
 import {env} from '@massalabs/massa-as-sdk/assembly/env'
 
-import {AbiEncode, AbiEncodePacked, Bytes32, bytes32ToU256, PriceData, SResult} from "./UmbrellaFeedsCommon";
+import {AbiEncodePacked, Bytes32, PriceData, SResult} from "./UmbrellaFeedsCommon";
 import {isRegistry} from "../interfaces/IRegistry";
 import {isStakingBankStatic} from "../interfaces/IStakingBankStatic";
-import {EvmAddress, publicKeyToU256, selfDestruct, wBytes, refund} from "../utils";
+import {publicKeyToU256, selfDestruct, wBytes, refund} from "../utils";
 
 
-const ETH_PREFIX = stringToBytes("\x19Ethereum Signed Message:\n32");
 const NAME = "UmbrellaFeeds";
 
 const REGISTRY_KEY = stringToBytes("REGISTRY");
@@ -41,13 +38,6 @@ const STAKING_BANK_KEY = stringToBytes("SB");
 const DEPLOYED_AT_KEY = stringToBytes("DEPLOYED_AT");
 const PRICE_KEY_PREFIX = stringToBytes("P_");
 const OFFSET_TIMESTAMP = 3*24*60*60*1000 ; // == 3 days in millis
-
-// Solidity:
-// 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0
-// python3:
-// l1 = bytearray.fromhex("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0");
-// print(list(l1))
-const _ECDSA_S_MAX: Array<u8> = [127, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 93, 87, 110, 115, 87, 164, 80, 29, 223, 233, 47, 70, 104, 27, 32, 160];
 
 class PriceTimestamp {
     // Note: same order as declared by: getPriceTimestamp
@@ -66,7 +56,7 @@ class PriceTimestampHeartbeat {
     //       emulate tuple
     price: u128;
     timestamp: u32;
-    heartbeat: u32; // FIXME: u24
+    heartbeat: u32; // Note: original type was u24
 
     constructor(price: u128, timestamp: u32, heartbeat: u32) {
         this.price = price;
@@ -106,9 +96,6 @@ class Signature implements Serializable {
 // Helpers
 
 function StorageGetPriceData(_priceKey: StaticArray<u8>): PriceData {
-
-    // Cannot have a PersistentMap<StaticArray<u8>, PriceData> cf issue massa-as-sdk #285
-    // Cannot have a PersistentMap<StaticArray<u8>, StaticArray<u8>> cf issue massa-as-sdk #286
     assert(_priceKey.length == 32);
     let priceKey = PRICE_KEY_PREFIX.concat(_priceKey);
     let _priceDataSer = Storage.get(priceKey);
@@ -132,9 +119,6 @@ function StorageGetPriceDataOrDefault(_priceKey: StaticArray<u8>): PriceData {
 }
 
 function StorageGetSomePriceData(_priceKey: StaticArray<u8>): SResult<PriceData> {
-
-    // Cannot have a PersistentMap<StaticArray<u8>, PriceData> cf issue massa-as-sdk #285
-    // Cannot have a PersistentMap<StaticArray<u8>, StaticArray<u8>> cf issue massa-as-sdk #286
     assert(_priceKey.length == 32);
     let priceKey = PRICE_KEY_PREFIX.concat(_priceKey);
 
@@ -171,7 +155,6 @@ class UmbrellaFeeds {
 
             let staking_bank_bytes32 = new Args().add(new Bytes32().add("STAKING_BANK").serialize());
             let _staking_bank = call(_contractRegistry, "requireAndGetAddress", staking_bank_bytes32, 0);
-            // let staking_bank = new Address(new Args(_staking_bank).nextString().expect("Cannot deser str"));
             let staking_bank = new Address(bytesToString(_staking_bank));
             isStakingBankStatic(staking_bank);
             Storage.set(STAKING_BANK_KEY, _staking_bank);
@@ -218,29 +201,6 @@ class UmbrellaFeeds {
         // for refund
         const _initialBalance: u64 = balance();
 
-        /*
-        let _priceDataHash = new AbiEncode()
-             .add(this.getChainId())
-             .add(Context.callee().toString());
-        for(let i = 0; i < _priceKeys.length; i++) {
-            _priceDataHash.add(new Bytes32().add(_priceKeys[i]));
-        }
-        for(let i = 0; i < _priceDatas.length; i++) {
-            _priceDataHash.add(_priceDatas[i].data);
-            // heartbeat is uint24 in Solidity but AbiEncode will provide the same result (uint24 or uint32)
-            // uint24 v1 = 65536; abi.encode(v1)
-            // uint32 v2 = 65536; abi.encode(v2)
-            _priceDataHash.add(_priceDatas[i].heartbeat);
-            _priceDataHash.add(_priceDatas[i].timestamp);
-            _priceDataHash.add(_priceDatas[i].price);
-        }
-        let priceDataHash = keccak256(_priceDataHash.serialize());
-        generateEvent("priceDataHash");
-        generateEvent(priceDataHash.toString());
-        this.evmVerifySignatures(priceDataHash, _signatures);
-        */
-
-        // TODO: rename
         let priceDataHash = new Args()
                 .add(this.getChainId())
                 .add(Context.callee().toString())
@@ -249,7 +209,6 @@ class UmbrellaFeeds {
                 ;
 
         let digest = b64Encode(wrapStaticArray(keccak256(priceDataHash.serialize())));
-        // generateEvent(`[update] digest: ${digest}`);
         this.verifySignatures(digest, _signatures, _pubKeys);
 
         let i = 0;
@@ -313,8 +272,6 @@ class UmbrellaFeeds {
 
     // function getPrice(bytes32 _key) external view returns (uint128 price)
     getPrice(_key: StaticArray<u8>): u128 {
-        // Not needed - done by StorageGetPriceData
-        // assert(_key.length, 32);
         let data = StorageGetPriceDataOrDefault(_key);
         assert(data.timestamp != 0); // FeedNotExist
         return data.price;
@@ -322,8 +279,6 @@ class UmbrellaFeeds {
 
     // function getPriceTimestamp(bytes32 _key) external view returns (uint128 price, uint32 timestamp)
     getPriceTimestamp(_key: StaticArray<u8>): PriceTimestamp {
-        // Not needed - done by StorageGetPriceData
-        // assert(_key.length == 32);
         let data = StorageGetPriceDataOrDefault(_key);
         assert(data.timestamp != 0); // FeedNotExist
         return new PriceTimestamp(data.price, data.timestamp);
@@ -334,8 +289,6 @@ class UmbrellaFeeds {
     //        view
     //        returns (uint128 price, uint32 timestamp, uint24 heartbeat)
     getPriceTimestampHeartbeat(_key: StaticArray<u8>): PriceTimestampHeartbeat {
-        // Not needed - done by get_ds_price
-        // assert(_key.length == 32);
         let data = StorageGetPriceDataOrDefault(_key);
         assert(data.timestamp != 0); // FeedNotExist
         return new PriceTimestampHeartbeat(data.price, data.timestamp, data.heartbeat)
@@ -375,14 +328,7 @@ class UmbrellaFeeds {
         // Check for each sig if it is valid
         let prevSigner = u256.Zero;
         for(let i=0; i<_signatures.length; i++) {
-
-            // generateEvent(`pk ${i}: ${_pubKeys[i]}`);
-            // generateEvent(`hash ${i}: ${_hash}`);
-            // generateEvent(`sig ${i}: ${_signatures[i]}`);
-            // generateEvent("===");
-
             assert(isSignatureValid(_pubKeys[i], _hash, _signatures[i]), "Sig is not valid");
-
             let signer = publicKeyToU256(_pubKeys[i]);
             assert(signer > prevSigner, "Sig out of order");
             prevSigner = signer;
@@ -394,7 +340,6 @@ class UmbrellaFeeds {
         let verifyValidatorsArgs = new Args()
             .add(_pubKeys);
 
-        // TODO: modify stakingBankStatic / stakingBankStaticDev
         let _ret = call(stakingBankAddr, "verifyValidators", verifyValidatorsArgs, 0);
         let ret: bool = new Args(_ret).nextBool().expect("Cannot get bool");
         assert(ret == true, "InvalidSigner"); // InvalidSigner
@@ -436,7 +381,6 @@ export function constructor(_args: StaticArray<u8>): void {
    let _contractRegistryStr = args.nextString().expect("Cannot deser Address OO");
    let _contractRegistry = new Address(_contractRegistryStr);
    // Note: no nextU16 on Args - gh #290 - https://github.com/massalabs/as/issues/290
-   // let _requiredSignatures: u16 = fromBytes<u16>(args.getNextData(sizeof<u16>()));
    let _requiredSignatures: u8 = args.nextU8().expect("Cannot get _requiredSignatures");
    let _decimals: u8 = args.nextU8().expect("Cannot get _decimals");
    let _ = new UmbrellaFeeds(true, _contractRegistry, _requiredSignatures, _decimals);
@@ -485,7 +429,7 @@ export function getPriceData(_key: StaticArray<u8>): StaticArray<u8> {
 
 export function getSomePriceData(_key: StaticArray<u8>): StaticArray<u8> {
     let args = new Args(_key);
-    let key = args.nextBytes().expect("Cannot deser _key");
+    let key = args.nextBytes().expect("Cannot get _key");
     let umbrellaFeeds = new UmbrellaFeeds();
     let _priceData = umbrellaFeeds.getSomePriceData(key);
     return new Args().add(_priceData).serialize();
@@ -521,8 +465,8 @@ export function REQUIRED_SIGNATURES(): StaticArray<u8> {
 
 export function hashData(_args: StaticArray<u8>): StaticArray<u8> {
     let args = new Args(_args);
-    let _priceKeys = args.nextSerializableObjectArray<wBytes>().expect("Cannot deser wBytes");
-    let _priceDatas = args.nextSerializableObjectArray<PriceData>().expect("Cannot deser PriceData");
+    let _priceKeys = args.nextSerializableObjectArray<wBytes>().expect("Cannot get wBytes");
+    let _priceDatas = args.nextSerializableObjectArray<PriceData>().expect("Cannot get PriceData");
     let umbrellaFeeds = new UmbrellaFeeds();
     let ret = umbrellaFeeds.hashData(_priceKeys, _priceDatas);
     return new Args().add(ret).serialize();

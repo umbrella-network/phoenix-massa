@@ -1,25 +1,20 @@
-import { u128, u256 } from "as-bignum/assembly";
+import { u256 } from "as-bignum/assembly";
 
 import {
     Storage,
-    Context, generateEvent, getBytecode, keccak256
+    generateEvent, getBytecode, keccak256
 } from "@massalabs/massa-as-sdk";
 
 import {
     wrapStaticArray,
     Args,
-    serializableObjectsArrayToBytes
 } from '@massalabs/as-types';
 
 import {
-    // NUMBER_OF_VALIDATORS_KEY,
     Validator,
     StakingBankStatic
 } from "./StakingBankStatic";
-import {EvmAddress} from "../utils";
 
-// const VALIDATOR_0 = EvmAddress.fromHex("0xDc3eBc37DA53A644D67E5E3b5BA4EEF88D969d5C");
-// const VALIDATOR_1 = EvmAddress.fromHex("0x998cb7821e605cC16b6174e7C50E19ADb2Dd2fB0");
 // Validator 0 Public Key
 const VALIDATOR_0: string = "P12UussnRjZBKLAT9WawXK6zZMh2TAxWuf3vqZstW1EVVqPx8cRr";
 // Validator 1 Public Key

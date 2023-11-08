@@ -13,7 +13,7 @@ export class PriceData implements Serializable {
     /// atm of creating this smart contract, it is only used as marker for removed data (when == type(uint8).max)
     public data: u8;
     /// @dev heartbeat: how often price data will be refreshed in case price stay flat
-    public heartbeat: u32; // FIXME: u24
+    public heartbeat: u32; // Note: original type was: u24
     /// @dev timestamp: price time, at this time validators run consensus
     public timestamp: u32;
     /// @dev price
@@ -155,10 +155,6 @@ export class Bytes32 {
 
         if (arg instanceof StaticArray<u8>) {
             assert(this.offset_ser + arg.length <= this.MAX_LEN);
-
-            // FIXME: can only use memory.copy if managed
-            // check: https://github.com/AssemblyScript/assemblyscript/blob/main/std/assembly/staticarray.ts
-            //        fromArray
             memory.copy(changetype<usize>(this.serialized) + this.offset_ser, changetype<usize>(arg), arg.length);
             this.offset_ser += arg.length;
 
@@ -195,13 +191,8 @@ abstract class BytesLen implements Serializable {
         const MAX_LEN = this.MAX_LEN();
         if (arg instanceof StaticArray<u8>) {
             assert(this.offset_ser + arg.length <= MAX_LEN);
-
-            // FIXME: can only use memory.copy if managed
-            // check: https://github.com/AssemblyScript/assemblyscript/blob/main/std/assembly/staticarray.ts
-            //        fromArray
             memory.copy(changetype<usize>(this.serialized) + this.offset_ser, changetype<usize>(arg), arg.length);
             this.offset_ser += arg.length;
-
         } else if (arg instanceof string) {
             let _arg = stringToBytes(arg);
             assert(this.offset_ser + arg.length <= MAX_LEN);

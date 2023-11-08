@@ -1,7 +1,6 @@
-import { u128, u256 } from 'as-bignum/assembly';
+import { u256 } from 'as-bignum/assembly';
 
 import {
-    Address,
     Storage,
     Context
 } from "@massalabs/massa-as-sdk";
@@ -90,18 +89,9 @@ export abstract class StakingBankStatic {
     }
 
     // function getBalances() external view returns (uint256[] memory allBalances)
-    // TODO
     addresses(_ix: i32): string {
         return this._addresses()[_ix];
     }
-
-    // TODO
-    // function validators(address _id) external view virtual returns (address id, string memory location);
-    // TODO
-    // function balanceOf(address _account) external view returns (uint256) {
-    // TODO
-    // function totalSupply() external view returns (uint256) {
-    // TODO
 
     getName(): Bytes32 {
         return new Bytes32().add("StakingBank");

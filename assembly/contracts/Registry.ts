@@ -1,26 +1,18 @@
-import { encode as b64Encode, decode } from "as-base64/assembly";
-
 import {
     Address,
     Storage,
     createEvent,
     generateEvent,
-    callerHasWriteAccess,
     Context,
     // abi
     call,
     getBytecode,
-    keccak256, balance, transferCoins
+    keccak256, balance
 } from "@massalabs/massa-as-sdk";
 
 import {
     Args,
     stringToBytes,
-    unwrapStaticArray,
-    wrapStaticArray,
-    // for class Name
-    Serializable,
-    Result
 } from "@massalabs/as-types";
 
 import {
@@ -175,8 +167,6 @@ export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
         generateEvent(`[requireAndGetAddress] ${addr}`);
     }
 
-    // let ret = new Args().add(addr.toString());
-    // return ret.serialize();
     return stringToBytes(addr.toString());
 }
 

@@ -26,7 +26,7 @@
     "build:UmbrellaFeedsReaderFactory": "npm run build:UmbrellaFeedsReaderFactory:debug",
     "build:dummy:debug": "asc --transform @massalabs/as-transformer assembly/contracts/dummy.ts --target debug --exportRuntime -o ./build/dummy.wasm",
     "build:dummy": "npm run build:dummy:debug",
-    "build": "run-s all:*",
+    "build": "run-s build:*",
     "deploy:Dummy": "ts-node src/deploy_Dummy.ts",
     "deploy:Registry": "ts-node src/deploy_Registry.ts",
     "deploy:StakingBankStaticDev": "ts-node src/deploy_StakingBankStaticDev.ts",

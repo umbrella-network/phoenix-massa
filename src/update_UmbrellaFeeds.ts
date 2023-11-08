@@ -1,23 +1,17 @@
 import {getClient, getDynamicCosts, okStatusOrThrow, pollEvents} from "./utils";
-import {readFileSync} from "fs";
 import {Client, Args, ISignature, NativeType, ArrayTypes, IReadData} from "@massalabs/massa-web3";
 import keccak256 from "@indeliblelabs/keccak256";
 import {wBytes} from "./serializables/wBytes";
 import {PriceData} from "./serializables/umbrella";
-import {u256} from "as-bignum";
-
-const deployDb: string = "deployed.json";
+import {getDeployedContracts} from "./common/deployed";
 
 async function main() {
     // main entry function
 
     const {client, account} = await getClient();
 
-
-    const jsonString = readFileSync(deployDb, "utf-8");
-    const jsonData = JSON.parse(jsonString);
-    const umbfKey = "UmbrellaFeeds"
-    const umbfScAddr = jsonData[umbfKey];
+    const jsonData = getDeployedContracts();
+    const umbfScAddr = jsonData.UmbrellaFeeds;
 
     const updateArgs = await dummyPrices(client, umbfScAddr);
     console.log("[main] Updating prices...");
