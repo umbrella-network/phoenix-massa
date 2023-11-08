@@ -36,6 +36,7 @@
     "update:UmbrellaFeeds": "ts-node src/update_UmbrellaFeeds.ts",
     "register:UmbrellaFeeds": "ts-node src/register_UmbrellaFeeds.ts",
     "example:fetch_price": "ts-node src/example_fetch_price.ts",
+    "register:StakingBank": "ts-node src/register_StakingBank.ts",
     "test": "asp"
   },
   "repository": {

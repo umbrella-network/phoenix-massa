@@ -13,7 +13,7 @@ import {
 } from '@massalabs/as-types';
 
 import {
-    Address,
+    Address, balance,
     call,
     Context,
     evmGetAddressFromPubkey,
@@ -28,7 +28,7 @@ import {env} from '@massalabs/massa-as-sdk/assembly/env'
 import {AbiEncode, AbiEncodePacked, Bytes32, bytes32ToU256, PriceData, SResult} from "./UmbrellaFeedsCommon";
 import {isRegistry} from "../interfaces/IRegistry";
 import {isStakingBankStatic} from "../interfaces/IStakingBankStatic";
-import {EvmAddress, publicKeyToU256, selfDestruct, wBytes} from "../utils";
+import {EvmAddress, publicKeyToU256, selfDestruct, wBytes, refund} from "../utils";
 
 
 const ETH_PREFIX = stringToBytes("\x19Ethereum Signed Message:\n32");
@@ -215,6 +215,9 @@ class UmbrellaFeeds {
         assert(_priceKeys.length == _priceDatas.length, "priceKeys len != priceDatas len"); // ArraysDataDoNotMatch
         assert(_signatures.length == _pubKeys.length, "_sig len != _pubk len");
 
+        // for refund
+        const _initialBalance: u64 = balance();
+
         /*
         let _priceDataHash = new AbiEncode()
              .add(this.getChainId())
@@ -263,6 +266,8 @@ class UmbrellaFeeds {
             StorageSetPriceData(_price_key, _price_data);
             i+=1;
         }
+
+        refund(_initialBalance);
     }
 
     // function getManyPriceData(bytes32[] calldata _keys) external view returns (PriceData[] memory data)

@@ -1,4 +1,4 @@
-import {getClient, okStatusOrThrow, pollEvents} from "./utils";
+import {getClient, getDynamicCosts, okStatusOrThrow, pollEvents} from "./utils";
 import {readFileSync} from "fs";
 import {Client, Args, ISignature, NativeType, ArrayTypes, IReadData} from "@massalabs/massa-web3";
 import keccak256 from "@indeliblelabs/keccak256";
@@ -115,12 +115,19 @@ async function dummyPrices(client: Client, umbfAddr: string): Promise<Args> {
 
 async function updatePrices(client: Client, scAddr: string, args: Args) {
 
+    let [estimated_gas, estimated_storage_cost] = await getDynamicCosts(
+        client, scAddr, "update", args.serialize());
+    // console.log(`Estimated gas: ${estimated_gas}`);
+    // console.log(`Estimated sto: ${estimated_storage_cost}`);
+
     const deployerAccount = client.wallet().getBaseAccount()!;
     const operationId = await client.smartContracts().callSmartContract(
         {
             fee: 0n,
-            maxGas: 70_000_000n,
-            coins: 0n,
+            // maxGas: 70_000_000n,
+            // coins: 0n,
+            maxGas: estimated_gas,
+            coins: BigInt(estimated_storage_cost),
             targetAddress: scAddr,
             functionName: 'update',
             parameter: args.serialize(),

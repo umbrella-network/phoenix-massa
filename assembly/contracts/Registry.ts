@@ -10,7 +10,7 @@ import {
     // abi
     call,
     getBytecode,
-    keccak256
+    keccak256, balance, transferCoins
 } from "@massalabs/massa-as-sdk";
 
 import {
@@ -30,7 +30,7 @@ import {
 
 import { isRegistrable } from "./extensions/Registrable";
 import { Bytes32 } from "./onChainFeeds/UmbrellaFeedsCommon";
-import { wBytes } from './utils';
+import {refund, wBytes} from './utils';
 
 function LogRegistered(dst: Address, name: StaticArray<u8>): void {
     let _name_arr = new Array<string>(1);
@@ -136,6 +136,9 @@ export function constructor(args: StaticArray<u8>): void {
 
 export function importAddresses(_args: StaticArray<u8>): void {
 
+    // for refund
+    const _initialBalance: u64 = balance();
+
     let args = new Args(_args);
     let _names: Array<wBytes> = args
         .nextSerializableObjectArray<wBytes>()
@@ -157,6 +160,8 @@ export function importAddresses(_args: StaticArray<u8>): void {
 
     let reg = new Registry();
     reg.importAddresses(names, destinations);
+
+    refund(_initialBalance);
 }
 
 export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {

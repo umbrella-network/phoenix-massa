@@ -1,6 +1,15 @@
 import {Args, Result, Serializable, wrapStaticArray} from "@massalabs/as-types";
 import {u256} from "as-bignum/assembly";
-import {Address, balance, generateEvent, getKeys, setBytecode, Storage, transferCoins} from "@massalabs/massa-as-sdk";
+import {
+    Address,
+    balance,
+    Context,
+    generateEvent,
+    getKeys,
+    setBytecode,
+    Storage,
+    transferCoins
+} from "@massalabs/massa-as-sdk";
 import {decode as b58Decode} from "as-base58/assembly";
 
 export class wBytes implements Serializable {
@@ -105,4 +114,31 @@ export function publicKeyToU256(pk: string): u256 {
     // Remove version (0) and b58 checksum (at the end)
     let pkb32 = pkDecoded.slice(1, pkDecoded.length - 4);
     return u256.fromUint8ArrayLE(pkb32);
+}
+
+export function refund(initialBalance: u64): void {
+
+    // generateEvent(`initialBalance: ${initialBalance}`);
+    const newBalance: u64 = balance();
+    // generateEvent(`newBalance: ${newBalance}`);
+    // Should never assert (or something is seriously wrong in the blockchain)
+    assert(initialBalance >= newBalance, "Runtime error");
+    let balanceDelta: u64 = initialBalance - newBalance;
+    // generateEvent(`balanceDelta: ${balanceDelta}`);
+
+    let transferredCoins = Context.transferredCoins();
+    if (transferredCoins > 0) {
+        // Only refund if caller has transferred too much coins (parameter coins of callSmartContract)
+        let coinsToRefund = transferredCoins > balanceDelta ? transferredCoins - balanceDelta : 0;
+        if (coinsToRefund > 0) {
+            // generateEvent(`[refund] send back ${coinsToRefund} coins`);
+            transferCoins(Context.caller(), coinsToRefund);
+        }
+    } else {
+        // read only call - transferred coins is set to 0
+        // to estimate gas cost & Storage cost
+        // TEMP: need an event to retrieve gas cost
+        let storageCost: u64 = balanceDelta;
+        generateEvent(`Estimated storage cost: ${storageCost}`);
+    }
 }

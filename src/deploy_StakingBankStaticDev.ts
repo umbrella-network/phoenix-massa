@@ -3,11 +3,19 @@ import path from "path";
 import {fileURLToPath} from "url";
 
 import {Args, ArrayTypes, Client, fromMAS, IReadData} from "@massalabs/massa-web3";
-import {getClient, needDeploy, deploySc, pollEvents, okStatusOrThrow, getScAddressFromEvents} from "./utils";
+import {
+    getClient,
+    needDeploy,
+    deploySc,
+    pollEvents,
+    okStatusOrThrow,
+    getScAddressFromEvents,
+} from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {Bytes32} from "./serializables/bytes32";
 import {wBytes} from "./serializables/wBytes";
 import {getDeployedContracts, saveDeployedContracts} from "./common/deployed";
+import {u256} from "as-bignum/assembly";
 
 // globals
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +39,10 @@ async function main() {
     }
     // console.log(`Need deploy: ${needDeploy_}`);
 
+    // Initial SC coins (for gas / coins estimation)
+    // TODO: Remove once https://github.com/massalabs/massa/pull/4455 is avail.
+    const coins = fromMAS(0.1);
+
     let scAddr = bankScAddr;
     let args = new Args().addU256(BigInt(process.env.VALIDATORS_COUNT!));
 
@@ -40,12 +52,12 @@ async function main() {
         let operationId = await deploySc(
             account,
             toDeploy,
-            fromMAS(0.2),
+            coins,
             args
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);
-        okStatusOrThrow(opStatus);
         console.log("[main] events:", events);
+        okStatusOrThrow(opStatus);
         scAddr = getScAddressFromEvents(events);
 
         // Update deployed DB with new SC address
@@ -80,6 +92,9 @@ async function main() {
 main();
 
 async function updateRegistry(client: Client, registryAddr: string, bankAddr: string, ): Promise<string> {
+
+    // Call Registry.importAddresses in order to store Staking bank address
+    // Note that it is used when deploying UmbrellaFeeds Smart Contract
 
     let bank_name: Uint8Array = new Bytes32().addString("STAKING_BANK").serialize();
     let _names: Array<wBytes> = [new wBytes(bank_name)];
