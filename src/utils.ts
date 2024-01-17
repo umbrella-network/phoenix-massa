@@ -22,7 +22,10 @@ export const getClient = async (): Promise<{
     account: IAccount;
 }> => {
     if (!process.env.WALLET_SECRET_KEY) {
-        throw new Error('WALLET_SECRET_KEY env variable is not set');
+        throw new Error("WALLET_SECRET_KEY env variable is not set");
+    }
+    if (!process.env.MASSA_CHAIN_ID) {
+        throw new Error("MASSA_CHAIN_ID env variable is not set");
     }
     const account = await WalletClient.getAccountFromSecretKey(
         process.env.WALLET_SECRET_KEY,
@@ -32,6 +35,7 @@ export const getClient = async (): Promise<{
     return {
         client: await ClientFactory.createDefaultClient(
             process.env.JSON_RPC_URL_PUBLIC as DefaultProviderUrls,
+            process.env.MASSA_CHAIN_ID,
             false,
             account,
         ),
