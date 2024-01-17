@@ -18,7 +18,7 @@ import {
     Context,
     getBytecode, isSignatureValid,
     keccak256,
-    Storage
+    Storage,
 } from '@massalabs/massa-as-sdk';
 
 import {env} from '@massalabs/massa-as-sdk/assembly/env'
@@ -347,10 +347,7 @@ class UmbrellaFeeds {
 
     // function getChainId() public view returns (uint256 id)
     getChainId(): u256 {
-        // Evm chainid spec:
-        // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1344.md
-        // For now, return 13119191 (m=13, a=1, s=19, s=19, a=1)
-        return u256.from(13119191);
+        return u256.from(env.chainId());
     }
 
     // function getName() public pure returns (bytes32)
