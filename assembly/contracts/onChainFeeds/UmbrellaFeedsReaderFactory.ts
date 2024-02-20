@@ -83,12 +83,14 @@ class UmbrellaFeedsReaderFactory {
         let registryAddrStr = bytesToString(Storage.get(REGISTRY_KEY));
         let registryAddr = new Address(registryAddrStr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args().add("UmbrellaFeeds"), 0);
+        let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
 
         if (readerAddr.isOk()) {
             let _readerAddr: Address = readerAddr.unwrap();
             let _umbrellaFeedsAddrFromReader = call(_readerAddr, "UMBRELLA_FEEDS", new Args(), 0);
+            let umbrellaFeedsAddrFromReader = new Address(bytesToString(_umbrellaFeedsAddrFromReader));
 
-            if (_umbrellaFeedsAddrFromReader == _umbrellaFeedsAddr) {
+            if (umbrellaFeedsAddrFromReader == umbrellaFeedsAddr) {
                 return _readerAddr;
             }
         }
@@ -117,9 +119,8 @@ class UmbrellaFeedsReaderFactory {
 
     // function deployed(string memory _feedName) public view returns (UmbrellaFeedsReader)
     deployed(_feedName: string): Result<Address> {
-        // TODO: _hash
-        // let readerKey = this._hash(_feedName);
-        let readerKey = new Bytes32().add(_feedName).serialize();
+        let readerKey_ = new Bytes32().add(_feedName).serialize();
+        let readerKey = this._hash(readerKey_);
         return StorageGetSomeReader(readerKey);
     }
 

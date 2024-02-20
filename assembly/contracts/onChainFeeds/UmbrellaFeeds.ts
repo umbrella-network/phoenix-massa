@@ -119,6 +119,7 @@ function StorageGetPriceDataOrDefault(_priceKey: StaticArray<u8>): PriceData {
 }
 
 function StorageGetSomePriceData(_priceKey: StaticArray<u8>): SResult<PriceData> {
+    /*
     assert(_priceKey.length == 32);
     let priceKey = PRICE_KEY_PREFIX.concat(_priceKey);
 
@@ -129,6 +130,16 @@ function StorageGetSomePriceData(_priceKey: StaticArray<u8>): SResult<PriceData>
         return new SResult(obj);
     } else {
         return new SResult(new PriceData(), 'Could not find key in Storage');
+    }
+    */
+
+    let priceData_ = new PriceData();
+    let priceData = StorageGetPriceDataOrDefault(_priceKey);
+
+    if (priceData == priceData_) {
+        return new SResult(priceData_, 'Could not find key in Storage');
+    } else {
+        return new SResult(priceData);
     }
 }
 
@@ -143,7 +154,7 @@ function StorageSetPriceData(_priceKey: StaticArray<u8>, _priceData: PriceData):
 
 class UmbrellaFeeds {
     // constructor(IRegistry _contractRegistry, uint16 _requiredSignatures, uint8 _decimals)
-    constructor(init: bool = false, _contractRegistry: Address = new Address("0"), _requiredSignatures: u8 = 0, _decimals: u8 = 0) {
+    constructor(init: bool = false, _contractRegistry: Address = new Address(), _requiredSignatures: u8 = 0, _decimals: u8 = 0) {
 
         if (init) {
             assert(Context.isDeployingContract());
