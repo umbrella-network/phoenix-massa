@@ -119,9 +119,8 @@ class UmbrellaFeedsReaderFactory {
 
     // function deployed(string memory _feedName) public view returns (UmbrellaFeedsReader)
     deployed(_feedName: string): Result<Address> {
-        // TODO: _hash
-        // let readerKey = this._hash(_feedName);
-        let readerKey = new Bytes32().add(_feedName).serialize();
+        let readerKey_ = new Bytes32().add(_feedName).serialize();
+        let readerKey = this._hash(readerKey_);
         return StorageGetSomeReader(readerKey);
     }
 
