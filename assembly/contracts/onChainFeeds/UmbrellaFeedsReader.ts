@@ -76,7 +76,7 @@ class UmbrellaFeedsReader {
 
         if (init) {
             assert(Context.isDeployingContract());
-            assert(_registry != new Address("0")); // EmptyAddress
+            assert(_registry != new Address()); // EmptyAddress
             isRegistry(_registry);
             isUmbrellaFeeds(_umbrellaFeeds);
 

@@ -143,7 +143,7 @@ function StorageSetPriceData(_priceKey: StaticArray<u8>, _priceData: PriceData):
 
 class UmbrellaFeeds {
     // constructor(IRegistry _contractRegistry, uint16 _requiredSignatures, uint8 _decimals)
-    constructor(init: bool = false, _contractRegistry: Address = new Address("0"), _requiredSignatures: u8 = 0, _decimals: u8 = 0) {
+    constructor(init: bool = false, _contractRegistry: Address = new Address(), _requiredSignatures: u8 = 0, _decimals: u8 = 0) {
 
         if (init) {
             assert(Context.isDeployingContract());
