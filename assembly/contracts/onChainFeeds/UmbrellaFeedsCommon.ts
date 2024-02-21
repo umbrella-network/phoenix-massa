@@ -159,10 +159,12 @@ export class Bytes32 {
             this.offset_ser += arg.length;
 
         } else if (arg instanceof string) {
+            // Note: Always us the byte length and not the string length.
+            //       Depending on character encoding, any string character could be many bytes long
             let _arg = stringToBytes(arg);
-            assert(this.offset_ser + arg.length <= this.MAX_LEN);
+            assert(this.offset_ser + _arg.length <= this.MAX_LEN);
             memory.copy(changetype<usize>(this.serialized) + this.offset_ser, changetype<usize>(_arg), _arg.length);
-            this.offset_ser += arg.length;
+            this.offset_ser += _arg.length;
         }
         else {
             ERROR("Do not know how to serialize the given type");
