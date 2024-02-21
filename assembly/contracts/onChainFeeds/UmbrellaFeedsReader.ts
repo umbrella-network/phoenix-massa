@@ -167,10 +167,11 @@ class UmbrellaFeedsReader {
         isRegistry(registryAddr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args(stringToBytes("UmbrellaFeeds")), 0);
         let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
-        let UMBRELLA_FEEDS = Storage.get(UMBRELLA_FEEDS_KEY);
+        // let UMBRELLA_FEEDS = Storage.get(UMBRELLA_FEEDS_KEY);
+        let UMBRELLA_FEEDS = this.UMBRELLA_FEEDS();
 
         // if contract was NOT updated, fallback is not needed, data does not exist - revert
-        assert(_umbrellaFeedsAddr == UMBRELLA_FEEDS); // FeedNotExist
+        assert(umbrellaFeedsAddr == UMBRELLA_FEEDS); // FeedNotExist
 
         let KEY = Storage.get(KEY_KEY);
         let _priceData = call(umbrellaFeedsAddr, "getPriceData", new Args(KEY), 0);
@@ -188,10 +189,11 @@ class UmbrellaFeedsReader {
         isRegistry(registryAddr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args(stringToBytes("UmbrellaFeeds")), 0);
         let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
-        let UMBRELLA_FEEDS = Storage.get(UMBRELLA_FEEDS_KEY);
+        // let _UMBRELLA_FEEDS = Storage.get(UMBRELLA_FEEDS_KEY);
+        let UMBRELLA_FEEDS = this.UMBRELLA_FEEDS();
 
         // if contract was updated, we do fallback
-        if (_umbrellaFeedsAddr == UMBRELLA_FEEDS) {
+        if (umbrellaFeedsAddr == UMBRELLA_FEEDS) {
             let KEY = Storage.get(KEY_KEY);
             let _priceData = call(umbrellaFeedsAddr, "getPriceData", new Args(KEY), 0);
             let priceData = new PriceData();

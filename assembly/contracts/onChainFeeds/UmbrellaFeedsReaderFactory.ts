@@ -83,12 +83,14 @@ class UmbrellaFeedsReaderFactory {
         let registryAddrStr = bytesToString(Storage.get(REGISTRY_KEY));
         let registryAddr = new Address(registryAddrStr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args().add("UmbrellaFeeds"), 0);
+        let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
 
         if (readerAddr.isOk()) {
             let _readerAddr: Address = readerAddr.unwrap();
             let _umbrellaFeedsAddrFromReader = call(_readerAddr, "UMBRELLA_FEEDS", new Args(), 0);
+            let umbrellaFeedsAddrFromReader = new Address(bytesToString(_umbrellaFeedsAddrFromReader));
 
-            if (_umbrellaFeedsAddrFromReader == _umbrellaFeedsAddr) {
+            if (umbrellaFeedsAddrFromReader == umbrellaFeedsAddr) {
                 return _readerAddr;
             }
         }
