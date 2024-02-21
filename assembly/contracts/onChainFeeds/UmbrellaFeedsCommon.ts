@@ -44,6 +44,35 @@ export class PriceData implements Serializable {
         return new Result(args.offset);
     }
 
+    // Same as deserialize but never throw - error is in the Result
+    public try_deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
+        const args = new Args(data, offset);
+        let _data = args.nextU8();
+        if (_data.isErr()) {
+            return new Result(0, "Unable to deserialize PriceData data");
+        }
+        let _heartbeat = args.nextU32();
+        if (_heartbeat.isErr()) {
+            return new Result(0, "Unable to deserialize PriceData heartbeat");
+        }
+        let _timestamp = args.nextU32();
+        if (_timestamp.isErr()) {
+            return new Result(0, "Unable to deserialize PriceData timestamp");
+        }
+        let _price = args.nextU128();
+        if (_price.isErr()) {
+            return new Result(0, "Unable to deserialize PriceData price");
+        }
+
+        // Safe for all unwrap calls here
+        this.data = args.nextU8().unwrap();
+        this.heartbeat = args.nextU32().unwrap();
+        this.timestamp = args.nextU32().unwrap();
+        this.price = args.nextU128().unwrap();
+        return new Result(args.offset);
+    }
+
+
     public toString(): string {
         return `PriceData: ${this.price}, h: ${this.heartbeat}, ts: ${this.timestamp}`;
     }
