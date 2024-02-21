@@ -119,16 +119,13 @@ function StorageGetPriceDataOrDefault(_priceKey: StaticArray<u8>): PriceData {
 }
 
 function StorageGetSomePriceData(_priceKey: StaticArray<u8>): SResult<PriceData> {
-    assert(_priceKey.length == 32);
-    let priceKey = PRICE_KEY_PREFIX.concat(_priceKey);
+    let priceData_ = new PriceData();
+    let priceData = StorageGetPriceDataOrDefault(_priceKey);
 
-    if (Storage.has(priceKey)) {
-        let _priceDataSer = Storage.get(priceKey);
-        let obj = new PriceData();
-        obj.deserialize(_priceDataSer).expect("Cannot deser PriceData");
-        return new SResult(obj);
+    if (priceData == priceData_) {
+        return new SResult(priceData_, 'Could not find key in Storage');
     } else {
-        return new SResult(new PriceData(), 'Could not find key in Storage');
+        return new SResult(priceData);
     }
 }
 
