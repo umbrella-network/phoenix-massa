@@ -16,7 +16,7 @@ import {
     call,
     // keccak256,
     generateEvent,
-    Context, keccak256,
+    Context, keccak256, functionExists,
 } from '@massalabs/massa-as-sdk';
 
 import {PriceData, Bytes32, SResult, AbiEncodePacked} from "./UmbrellaFeedsCommon";
@@ -189,19 +189,19 @@ class UmbrellaFeedsReader {
         isRegistry(registryAddr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args(stringToBytes("UmbrellaFeeds")), 0);
         let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
-        // let _UMBRELLA_FEEDS = Storage.get(UMBRELLA_FEEDS_KEY);
+        assert(functionExists(umbrellaFeedsAddr, "getPriceData"));
         let UMBRELLA_FEEDS = this.UMBRELLA_FEEDS();
 
+        let priceData = new PriceData();
         // if contract was updated, we do fallback
-        if (umbrellaFeedsAddr == UMBRELLA_FEEDS) {
+        if (umbrellaFeedsAddr == UMBRELLA_FEEDS && Storage.has(KEY_KEY)) {
             let KEY = Storage.get(KEY_KEY);
             let _priceData = call(umbrellaFeedsAddr, "getPriceData", new Args(KEY), 0);
-            let priceData = new PriceData();
-            priceData.deserialize(_priceData).expect("Cannot deser PriceData");
-            return priceData;
+            // priceData is left untouched by try_deserialize so we can ignore _res
+            let _res = priceData.deserialize(_priceData);
         }
 
-        return new PriceData(0, 0, 0, u128.Zero);
+        return priceData;
     }
 
     // Getter / Setter
