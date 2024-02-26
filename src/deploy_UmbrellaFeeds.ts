@@ -14,7 +14,7 @@ const __dirname = path.dirname(path.dirname(__filename));
 async function main() {
     // main entry function
 
-    const {client, account} = await getClient();
+    const {client, account, chainId} = await getClient();
 
     const jsonData = getDeployedContracts();
     const umbfScAddr = jsonData.UmbrellaFeeds;
@@ -48,13 +48,14 @@ async function main() {
         // deploy smart contract
         let operationId = await deploySc(
             account,
+            chainId,
             toDeploy,
             fromMAS(0.9),
             umbArgs
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);
-        okStatusOrThrow(opStatus);
         console.log("[main] events:", events);
+        okStatusOrThrow(opStatus);
         scAddr = getScAddressFromEvents(events);
 
         // Update deployed DB with new SC address

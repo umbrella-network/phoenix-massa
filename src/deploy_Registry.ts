@@ -22,7 +22,7 @@ async function main() {
     // main entry function
     const jsonData = getDeployedContracts();
 
-    const {client, account} = await getClient();
+    const {client, account, chainId} = await getClient();
 
     const registryScAddr = jsonData.Registry;
 
@@ -44,13 +44,14 @@ async function main() {
         // deploy smart contract
         let operationId = await deploySc(
             account,
+            chainId,
             toDeploy,
             coins,
             new Args()
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);
-        okStatusOrThrow(opStatus);
         console.log("[main] events:", events);
+        okStatusOrThrow(opStatus);
         scAddr = getScAddressFromEvents(events);
 
         // Update deployed DB with new SC address

@@ -15,7 +15,7 @@ import {
 import {
     Address, balance,
     call,
-    Context,
+    Context, generateEvent,
     getBytecode, isSignatureValid,
     keccak256,
     Storage,
@@ -28,9 +28,8 @@ import {isRegistry} from "../interfaces/IRegistry";
 import {isStakingBankStatic} from "../interfaces/IStakingBankStatic";
 import {publicKeyToU256, selfDestruct, wBytes, refund} from "../utils";
 
-
+/*
 const NAME = "UmbrellaFeeds";
-
 const REGISTRY_KEY = stringToBytes("REGISTRY");
 const REQUIRED_SIGNATURES_KEY = stringToBytes("REQUIRED_SIGNATURES");
 const DECIMALS_KEY = stringToBytes("DECIMALS");
@@ -38,6 +37,7 @@ const STAKING_BANK_KEY = stringToBytes("SB");
 const DEPLOYED_AT_KEY = stringToBytes("DEPLOYED_AT");
 const PRICE_KEY_PREFIX = stringToBytes("P_");
 const OFFSET_TIMESTAMP = 3*24*60*60*1000 ; // == 3 days in millis
+*/
 
 class PriceTimestamp {
     // Note: same order as declared by: getPriceTimestamp
@@ -95,18 +95,18 @@ class Signature implements Serializable {
 
 // Helpers
 
-function StorageGetPriceData(_priceKey: StaticArray<u8>): PriceData {
+function StorageGetPriceData(_priceKey: StaticArray<u8>, priceKeyPrefix: StaticArray<u8>): PriceData {
     assert(_priceKey.length == 32);
-    let priceKey = PRICE_KEY_PREFIX.concat(_priceKey);
+    let priceKey = priceKeyPrefix.concat(_priceKey);
     let _priceDataSer = Storage.get(priceKey);
     let obj = new PriceData();
     obj.deserialize(_priceDataSer).expect("Cannot getPriceData");
     return obj;
 }
 
-function StorageGetPriceDataOrDefault(_priceKey: StaticArray<u8>): PriceData {
+function StorageGetPriceDataOrDefault(_priceKey: StaticArray<u8>, priceKeyPrefix: StaticArray<u8>): PriceData {
     assert(_priceKey.length == 32);
-    let priceKey = PRICE_KEY_PREFIX.concat(_priceKey);
+    let priceKey = priceKeyPrefix.concat(_priceKey);
 
     if (Storage.has(priceKey)) {
         let _priceDataSer = Storage.get(priceKey);
@@ -118,9 +118,9 @@ function StorageGetPriceDataOrDefault(_priceKey: StaticArray<u8>): PriceData {
     }
 }
 
-function StorageGetSomePriceData(_priceKey: StaticArray<u8>): SResult<PriceData> {
+function StorageGetSomePriceData(_priceKey: StaticArray<u8>, priceKeyPrefix: StaticArray<u8>): SResult<PriceData> {
     let priceData_ = new PriceData();
-    let priceData = StorageGetPriceDataOrDefault(_priceKey);
+    let priceData = StorageGetPriceDataOrDefault(_priceKey, priceKeyPrefix);
 
     if (priceData == priceData_) {
         return new SResult(priceData_, 'Could not find key in Storage');
@@ -130,15 +130,25 @@ function StorageGetSomePriceData(_priceKey: StaticArray<u8>): SResult<PriceData>
 }
 
 
-function StorageSetPriceData(_priceKey: StaticArray<u8>, _priceData: PriceData): void {
+function StorageSetPriceData(_priceKey: StaticArray<u8>, priceKeyPrefix: StaticArray<u8>, _priceData: PriceData): void {
     assert(_priceKey.length == 32);
-    let priceKey = PRICE_KEY_PREFIX.concat(_priceKey);
+    let priceKey = priceKeyPrefix.concat(_priceKey);
     Storage.set(priceKey, _priceData.serialize());
 }
 
 // End helpers
 
 class UmbrellaFeeds {
+
+    NAME: string = "UmbrellaFeeds";
+    REGISTRY_KEY: StaticArray<u8> = stringToBytes("REGISTRY");
+    REQUIRED_SIGNATURES_KEY: StaticArray<u8> = stringToBytes("REQUIRED_SIGNATURES");
+    DECIMALS_KEY: StaticArray<u8> = stringToBytes("DECIMALS");
+    STAKING_BANK_KEY: StaticArray<u8> = stringToBytes("SB");
+    DEPLOYED_AT_KEY: StaticArray<u8> = stringToBytes("DEPLOYED_AT");
+    PRICE_KEY_PREFIX: StaticArray<u8> = stringToBytes("P_");
+    OFFSET_TIMESTAMP: u64 = 3*24*60*60*1000 ; // == 3 days in millis
+
     // constructor(IRegistry _contractRegistry, uint16 _requiredSignatures, uint8 _decimals)
     constructor(init: bool = false, _contractRegistry: Address = new Address(), _requiredSignatures: u8 = 0, _decimals: u8 = 0) {
 
@@ -147,17 +157,17 @@ class UmbrellaFeeds {
             assert(_requiredSignatures > 0);
             isRegistry(_contractRegistry);
 
-            Storage.set(REGISTRY_KEY, stringToBytes(_contractRegistry.toString()));
-            Storage.set(REQUIRED_SIGNATURES_KEY, toBytes<u8>(_requiredSignatures));
+            Storage.set(this.REGISTRY_KEY, stringToBytes(_contractRegistry.toString()));
+            Storage.set(this.REQUIRED_SIGNATURES_KEY, toBytes<u8>(_requiredSignatures));
 
             let staking_bank_bytes32 = new Args().add(new Bytes32().add("STAKING_BANK").serialize());
             let _staking_bank = call(_contractRegistry, "requireAndGetAddress", staking_bank_bytes32, 0);
             let staking_bank = new Address(bytesToString(_staking_bank));
             isStakingBankStatic(staking_bank);
-            Storage.set(STAKING_BANK_KEY, _staking_bank);
-            Storage.set(DECIMALS_KEY, toBytes<u8>(_decimals));
+            Storage.set(this.STAKING_BANK_KEY, _staking_bank);
+            Storage.set(this.DECIMALS_KEY, toBytes<u8>(_decimals));
             // env.time -> assembly_script_get_time -> return block slot timestamp
-            Storage.set(DEPLOYED_AT_KEY, toBytes<u64>(env.time()));
+            Storage.set(this.DEPLOYED_AT_KEY, toBytes<u64>(env.time()));
         }
     }
 
@@ -166,33 +176,31 @@ class UmbrellaFeeds {
     /// @param _name string feed key to verify, that contract was initialised
     destroy(_name: string): void {
 
-        let registryAddr = new Address(bytesToString(Storage.get(REGISTRY_KEY)));
+        let registryAddr = new Address(bytesToString(Storage.get(this.REGISTRY_KEY)));
         isRegistry(registryAddr);
-        let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args().add(NAME), 0);
+        let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args().add(this.NAME), 0);
         let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
         assert(umbrellaFeedsAddr == Context.callee()); // ContractInUse()
 
         let priceKey = keccak256(new AbiEncodePacked().add(_name).serialize());
-        let priceData = StorageGetPriceData(priceKey);
-        let deployed_at = fromBytes<u64>(Storage.get(DEPLOYED_AT_KEY));
+        let priceData = StorageGetPriceData(priceKey, this.PRICE_KEY_PREFIX);
+        let deployed_at = fromBytes<u64>(Storage.get(this.DEPLOYED_AT_KEY));
         let block_timestamp = env.time();
-        assert(priceData.timestamp == 0 && deployed_at + OFFSET_TIMESTAMP > block_timestamp) // ContractNotInitialized()
+        assert(priceData.timestamp == 0 && deployed_at + this.OFFSET_TIMESTAMP > block_timestamp) // ContractNotInitialized()
 
         let caller = Context.caller();
         selfDestruct(caller);
     }
 
-    /*
     /// @inheritdoc IUmbrellaFeeds
-    function update(
-        bytes32[] calldata _priceKeys,
-        PriceData[] calldata _priceDatas,
-        Signature[] calldata _signatures
-    ) external
-    */
+    // function update(
+    //     bytes32[] calldata _priceKeys,
+    //     PriceData[] calldata _priceDatas,
+    //     Signature[] calldata _signatures
+    // ) external
     update(_priceKeys: wBytes[], _priceDatas: PriceData[], _signatures: string[], _pubKeys: string[]): void {
 
-        assert(_priceKeys.length == _priceDatas.length, "priceKeys len != priceDatas len"); // ArraysDataDoNotMatch
+        assert(_priceKeys.length == _priceDatas.length, "priceKeys length != priceDatas length"); // ArraysDataDoNotMatch
         assert(_signatures.length == _pubKeys.length, "_sig len != _pubk len");
 
         // for refund
@@ -214,12 +222,12 @@ class UmbrellaFeeds {
             assert(_price_key.length == 32);
             let _price_data = _priceDatas[i];
             // Note: Solidity Mapping always returns a value so here we return a Result
-            let stored_price_data = StorageGetPriceDataOrDefault(_price_key);
+            let stored_price_data = StorageGetPriceDataOrDefault(_price_key, this.PRICE_KEY_PREFIX);
             // we do not allow for older prices
             // at the same time it prevents from reusing signatures
             assert(stored_price_data.timestamp < _price_data.timestamp, "OldData"); // OldData
 
-            StorageSetPriceData(_price_key, _price_data);
+            StorageSetPriceData(_price_key, this.PRICE_KEY_PREFIX, _price_data);
             i+=1;
         }
 
@@ -232,7 +240,7 @@ class UmbrellaFeeds {
         let data = new Array<PriceData>(_keys.length);
         for (let i = 0; i < _keys.length; i++) {
             let _key = _keys[i];
-            data[i] = StorageGetPriceDataOrDefault(_key);
+            data[i] = StorageGetPriceDataOrDefault(_key, this.PRICE_KEY_PREFIX);
             assert(data[i].timestamp == 0); // FeedNotExist()
         }
         return data;
@@ -244,39 +252,39 @@ class UmbrellaFeeds {
         let data = new Array<PriceData>(_keys.length);
         for (let i = 0; i < _keys.length; i++) {
             let _key = _keys[i];
-            data[i] = StorageGetPriceDataOrDefault(_key.getData());
+            data[i] = StorageGetPriceDataOrDefault(_key.getData(), this.PRICE_KEY_PREFIX);
         }
         return data;
     }
 
     // function prices(bytes32 _key) external view returns (PriceData memory data)
     prices(_key: StaticArray<u8>): PriceData {
-        return StorageGetPriceDataOrDefault(_key);
+        return StorageGetPriceDataOrDefault(_key, this.PRICE_KEY_PREFIX);
     }
 
     // function getPriceData(bytes32 _key) external view returns (PriceData memory data)
     getPriceData(_key: StaticArray<u8>): PriceData {
-        let data = StorageGetPriceDataOrDefault(_key);
+        let data = StorageGetPriceDataOrDefault(_key, this.PRICE_KEY_PREFIX);
         assert(data.timestamp != 0, "FeedNotExist"); // FeedNotExist
         return data;
     }
 
     // New function - emulate prices fetch
     getSomePriceData(_key: StaticArray<u8>): SResult<PriceData> {
-        let res = StorageGetSomePriceData(_key);
+        let res = StorageGetSomePriceData(_key, this.PRICE_KEY_PREFIX);
         return res;
     }
 
     // function getPrice(bytes32 _key) external view returns (uint128 price)
     getPrice(_key: StaticArray<u8>): u128 {
-        let data = StorageGetPriceDataOrDefault(_key);
+        let data = StorageGetPriceDataOrDefault(_key, this.PRICE_KEY_PREFIX);
         assert(data.timestamp != 0); // FeedNotExist
         return data.price;
     }
 
     // function getPriceTimestamp(bytes32 _key) external view returns (uint128 price, uint32 timestamp)
     getPriceTimestamp(_key: StaticArray<u8>): PriceTimestamp {
-        let data = StorageGetPriceDataOrDefault(_key);
+        let data = StorageGetPriceDataOrDefault(_key, this.PRICE_KEY_PREFIX);
         assert(data.timestamp != 0); // FeedNotExist
         return new PriceTimestamp(data.price, data.timestamp);
     }
@@ -286,7 +294,7 @@ class UmbrellaFeeds {
     //        view
     //        returns (uint128 price, uint32 timestamp, uint24 heartbeat)
     getPriceTimestampHeartbeat(_key: StaticArray<u8>): PriceTimestampHeartbeat {
-        let data = StorageGetPriceDataOrDefault(_key);
+        let data = StorageGetPriceDataOrDefault(_key, this.PRICE_KEY_PREFIX);
         assert(data.timestamp != 0); // FeedNotExist
         return new PriceTimestampHeartbeat(data.price, data.timestamp, data.heartbeat)
     }
@@ -319,7 +327,7 @@ class UmbrellaFeeds {
     // function verifySignatures(bytes32 _hash, Signature[] calldata _signatures) public view {
     verifySignatures(_hash: string, _signatures: string[], _pubKeys: string[]): void {
 
-        let _REQUIRED_SIGNATURES: i32 = fromBytes<u8>(Storage.get(REQUIRED_SIGNATURES_KEY));
+        let _REQUIRED_SIGNATURES: i32 = fromBytes<u8>(Storage.get(this.REQUIRED_SIGNATURES_KEY));
         assert(_signatures.length >= _REQUIRED_SIGNATURES, "NotEnoughSignatures");
 
         // Check for each sig if it is valid
@@ -331,7 +339,7 @@ class UmbrellaFeeds {
             prevSigner = signer;
         }
 
-        let _stakingBankAddr = Storage.get(STAKING_BANK_KEY)
+        let _stakingBankAddr = Storage.get(this.STAKING_BANK_KEY)
         let stakingBankAddr = new Address(bytesToString(_stakingBankAddr));
         isStakingBankStatic(stakingBankAddr);
         let verifyValidatorsArgs = new Args()
@@ -355,16 +363,16 @@ class UmbrellaFeeds {
     // Getter / Setter
     DECIMALS(): u8 {
         let decimals: u8 = 0;
-        if (Storage.has(DECIMALS_KEY)) {
-            decimals = fromBytes<u8>(Storage.get(DECIMALS_KEY));
+        if (Storage.has(this.DECIMALS_KEY)) {
+            decimals = fromBytes<u8>(Storage.get(this.DECIMALS_KEY));
         }
         return decimals;
     }
 
     REQUIRED_SIGNATURES(): u8 {
         let required_signatures: u8 = 0;
-        if (Storage.has(REQUIRED_SIGNATURES_KEY)) {
-            required_signatures = fromBytes<u8>(Storage.get(REQUIRED_SIGNATURES_KEY));
+        if (Storage.has(this.REQUIRED_SIGNATURES_KEY)) {
+            required_signatures = fromBytes<u8>(Storage.get(this.REQUIRED_SIGNATURES_KEY));
         }
         return required_signatures;
     }
