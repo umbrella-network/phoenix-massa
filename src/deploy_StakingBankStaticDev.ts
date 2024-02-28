@@ -24,7 +24,7 @@ const __dirname = path.dirname(path.dirname(__filename));
 async function main() {
     // main entry function
 
-    const {client, account} = await getClient();
+    const {client, account, chainId} = await getClient();
 
     const jsonData = getDeployedContracts();
     const bankKey = "StakingBankStaticDev"
@@ -51,6 +51,7 @@ async function main() {
         // deploy smart contract
         let operationId = await deploySc(
             account,
+            chainId,
             toDeploy,
             coins,
             args

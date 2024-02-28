@@ -17,9 +17,12 @@ config({
     example: `.env.example`,
 });
 
+const MAX_GAS = 3980167295n;
+
 export const getClient = async (): Promise<{
     client: Client;
     account: IAccount;
+    chainId: bigint;
 }> => {
     if (!process.env.WALLET_SECRET_KEY) {
         throw new Error("WALLET_SECRET_KEY env variable is not set");
@@ -30,20 +33,22 @@ export const getClient = async (): Promise<{
     const account = await WalletClient.getAccountFromSecretKey(
         process.env.WALLET_SECRET_KEY,
     );
-    console.log('Using account: ', account.address);
+    // console.log('Using account: ', account.address);
+    const chainId = BigInt(process.env.MASSA_CHAIN_ID);
 
     return {
         client: await ClientFactory.createDefaultClient(
             process.env.JSON_RPC_URL_PUBLIC as DefaultProviderUrls,
-            process.env.MASSA_CHAIN_ID,
+            BigInt(process.env.MASSA_CHAIN_ID),
             false,
             account,
         ),
         account,
+        chainId,
     };
 };
 
-export async function deploySc(account: IAccount, scPath: string, coins: bigint, args: Args): Promise<string> {
+export async function deploySc(account: IAccount, chainId: bigint, scPath: string, coins: bigint, args: Args): Promise<string> {
     const deploy_sc = await deploySC(
         process.env.JSON_RPC_URL_PUBLIC!,
         account,
@@ -55,8 +60,9 @@ export async function deploySc(account: IAccount, scPath: string, coins: bigint,
                 args: args,
             },
         ],
+        chainId,
         0n, // fees
-        4_200_000_000n, // max gas
+        MAX_GAS,
         false, // wait for the first event to be emitted and print it into the console.
     );
     return deploy_sc.opId;
@@ -122,11 +128,18 @@ export async function needDeploy(client: Client, scAddr: string, toDeployHash: U
         targetFunction: "getDeployedBytecodeHash",
         parameter: new Args().serialize(),
     }
-    const resp = await client.smartContracts().readSmartContract(readData);
-    // console.log("resp", resp);
-    const deployedHash = new Args(resp.returnValue).nextUint8Array();
-    // console.log(`deployedHash: ${deployedHash}`);
-    // console.log(`toDeployedHash: ${toDeployHash}`);
+
+    let deployedHash = new Uint8Array(0);
+    try {
+        const resp = await client.smartContracts().readSmartContract(readData);
+        // console.log("resp", resp);
+        deployedHash = new Args(resp.returnValue).nextUint8Array();
+        // console.log(`deployedHash: ${deployedHash}`);
+        // console.log(`toDeployedHash: ${toDeployHash}`);
+    } catch (e) {
+        // Note: most likely the function getDeployedByteHash() is not found on wasm file
+        console.log("e:", e);
+    }
 
     return !compareFunc(toDeployHash, deployedHash);
 }
