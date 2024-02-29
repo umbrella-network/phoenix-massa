@@ -23,12 +23,6 @@ import {PriceData, Bytes32, SResult, AbiEncodePacked} from "./UmbrellaFeedsCommo
 import { isRegistry } from "../interfaces/IRegistry";
 import { isUmbrellaFeeds } from "../interfaces/IUmbrellaFeeds";
 
-const REGISTRY_KEY = stringToBytes("REGISTRY");
-const UMBRELLA_FEEDS_KEY = stringToBytes("UMB");
-const DESCRIPTION_KEY = stringToBytes("DESCRIPTION");
-const KEY_KEY = stringToBytes("KEY");
-const DECIMALS_KEY = stringToBytes("DECIMALS");
-
 
 class LatestRoundData implements Serializable {
     roundId: u64; // unused, is uint80 in solidity
@@ -57,11 +51,11 @@ class LatestRoundData implements Serializable {
 
     public deserialize(data: StaticArray<u8>, offset: i32): Result<i32> {
         const args = new Args(data, offset);
-        this.roundId = args.nextU64().expect("Cannot deser roundId");
-        this.answer = args.nextU256().expect("Cannot deser answer");
-        this.startedAt = args.nextU256().expect("Cannot deser startedAt");
-        this.updatedAt = args.nextU256().expect("Cannot deser updatedAt");
-        this.answeredInRound = args.nextU64().expect("Cannot deser answeredInRound");
+        this.roundId = args.nextU64().expect("Cannot get roundId");
+        this.answer = args.nextU256().expect("Cannot get answer");
+        this.startedAt = args.nextU256().expect("Cannot get startedAt");
+        this.updatedAt = args.nextU256().expect("Cannot get updatedAt");
+        this.answeredInRound = args.nextU64().expect("Cannot get answeredInRound");
         return new Result(args.offset);
     }
 
@@ -71,6 +65,13 @@ class LatestRoundData implements Serializable {
 }
 
 class UmbrellaFeedsReader {
+
+    REGISTRY_KEY: StaticArray<u8> = stringToBytes("REGISTRY");
+    UMBRELLA_FEEDS_KEY: StaticArray<u8> = stringToBytes("UMB");
+    // const DESCRIPTION_KEY = stringToBytes("DESCRIPTION");
+    KEY_KEY: StaticArray<u8> = stringToBytes("KEY");
+    DECIMALS_KEY: StaticArray<u8> = stringToBytes("DECIMALS");
+
     // constructor(IUmbrellaFeeds _umbrellaFeeds, string memory _key) {
     constructor(init: bool = false, _registry: Address = new Address(), _umbrellaFeeds: Address = new Address(), _key: string = "") {
 
@@ -80,28 +81,27 @@ class UmbrellaFeedsReader {
             isRegistry(_registry);
             isUmbrellaFeeds(_umbrellaFeeds);
 
-            Storage.set(REGISTRY_KEY, stringToBytes(_registry.toString()));
-            Storage.set(UMBRELLA_FEEDS_KEY, stringToBytes(_umbrellaFeeds.toString()));
+            Storage.set(this.REGISTRY_KEY, stringToBytes(_registry.toString()));
+            Storage.set(this.UMBRELLA_FEEDS_KEY, stringToBytes(_umbrellaFeeds.toString()));
             // Storage.set(DESCRIPTION_KEY, stringToBytes(_key));
 
             let decimals = call(_umbrellaFeeds, "DECIMALS", new Args(), 0);
-            Storage.set(DECIMALS_KEY, decimals);
+            Storage.set(this.DECIMALS_KEY, decimals);
 
             let hash = keccak256(new AbiEncodePacked().add(_key).serialize());
-            // TODO - OPTIM: if hash.len == 32, no need to use Bytes32
             assert(hash.length == 32);
-            let key = new Bytes32().add(hash).serialize();
-            Storage.set(KEY_KEY, key);
+            // let key = new Bytes32().add(hash).serialize();
+            Storage.set(this.KEY_KEY, hash);
 
             // sanity check
-            call(_umbrellaFeeds, "getPriceData", new Args().add(key), 0);
+            call(_umbrellaFeeds, "getPriceData", new Args().add(hash), 0);
         }
     }
 
     /// @dev decimals for feed
     //    function decimals() external view returns (uint8) {
     decimals(): u8 {
-        return fromBytes<u8>(Storage.get(DECIMALS_KEY));
+        return fromBytes<u8>(Storage.get(this.DECIMALS_KEY));
     }
 
     //     function latestRoundData()
@@ -148,7 +148,7 @@ class UmbrellaFeedsReader {
     /// @dev same as `getPriceData` but does not revert when no data
     // function _getPriceDataRaw() internal view returns (IUmbrellaFeeds.PriceData memory priceData) {
     _getPriceDataRaw(): PriceData {
-        let KEY = Storage.get(KEY_KEY);
+        let KEY = Storage.get(this.KEY_KEY);
         let UMBRELLA_FEEDS = this.UMBRELLA_FEEDS();
         let _priceData = call(UMBRELLA_FEEDS, "getSomePriceData", new Args().add(KEY), 0);
         let priceData = new Args(_priceData).nextSerializable<SResult<PriceData>>().expect("No SRes");
@@ -163,7 +163,7 @@ class UmbrellaFeedsReader {
     // function _fallbackCall() internal view returns (IUmbrellaFeeds.PriceData memory data) {
     _fallbackCall(): PriceData {
 
-        let registryAddr = new Address(bytesToString(Storage.get(REGISTRY_KEY)));
+        let registryAddr = new Address(bytesToString(Storage.get(this.REGISTRY_KEY)));
         isRegistry(registryAddr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args(stringToBytes("UmbrellaFeeds")), 0);
         let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
@@ -173,7 +173,7 @@ class UmbrellaFeedsReader {
         // if contract was NOT updated, fallback is not needed, data does not exist - revert
         assert(umbrellaFeedsAddr == UMBRELLA_FEEDS); // FeedNotExist
 
-        let KEY = Storage.get(KEY_KEY);
+        let KEY = Storage.get(this.KEY_KEY);
         let _priceData = call(umbrellaFeedsAddr, "getPriceData", new Args(KEY), 0);
         // let priceData = changetype<PriceData>(new PriceData(0, 0, 0, u128.Zero).deserialize(_priceData));
         let priceData = new PriceData();
@@ -185,7 +185,7 @@ class UmbrellaFeedsReader {
     // function _fallbackCallRaw() internal view returns (IUmbrellaFeeds.PriceData memory data) {
     _fallbackCallRaw(): PriceData {
 
-        let registryAddr = new Address(bytesToString(Storage.get(REGISTRY_KEY)));
+        let registryAddr = new Address(bytesToString(Storage.get(this.REGISTRY_KEY)));
         isRegistry(registryAddr);
         let _umbrellaFeedsAddr = call(registryAddr, "getAddressByString", new Args(stringToBytes("UmbrellaFeeds")), 0);
         let umbrellaFeedsAddr = new Address(bytesToString(_umbrellaFeedsAddr));
@@ -194,8 +194,8 @@ class UmbrellaFeedsReader {
 
         let priceData = new PriceData();
         // if contract was updated, we do fallback
-        if (umbrellaFeedsAddr == UMBRELLA_FEEDS && Storage.has(KEY_KEY)) {
-            let KEY = Storage.get(KEY_KEY);
+        if (umbrellaFeedsAddr == UMBRELLA_FEEDS && Storage.has(this.KEY_KEY)) {
+            let KEY = Storage.get(this.KEY_KEY);
             let _priceData = call(umbrellaFeedsAddr, "getPriceData", new Args(KEY), 0);
             // priceData is left untouched by try_deserialize so we can ignore _res
             let _res = priceData.deserialize(_priceData);
@@ -206,15 +206,15 @@ class UmbrellaFeedsReader {
 
     // Getter / Setter
     UMBRELLA_FEEDS(): Address {
-        return new Address(bytesToString(Storage.get(UMBRELLA_FEEDS_KEY)));
+        return new Address(bytesToString(Storage.get(this.UMBRELLA_FEEDS_KEY)));
     }
 }
 
 export function constructor(_args: StaticArray<u8>): void {
     let args = new Args(_args);
-    let _registry = args.nextString().expect("Cannot deser str _reg");
-    let _umbrellaFeeds = args.nextString().expect("Cannot deser str umbf");
-    let _key: string = args.nextString().expect("Cannot deser str");
+    let _registry = args.nextString().expect("Cannot get registry from args");
+    let _umbrellaFeeds = args.nextString().expect("Cannot get umbrella feeds addr from args");
+    let _key: string = args.nextString().expect("Cannot get key from args");
     new UmbrellaFeedsReader(true, new Address(_registry), new Address(_umbrellaFeeds), _key);
 }
 

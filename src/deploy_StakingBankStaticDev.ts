@@ -84,6 +84,7 @@ async function main() {
 
     console.log("[main] SC address (StakingBankStaticDev):", scAddr);
 
+    console.log("[main] Calling StakingBankStaticDev.getAddresses...");
     const addresses = await getAddresses(client, scAddr);
     console.log("addresses:", addresses);
     // tmp force exit

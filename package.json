@@ -46,6 +46,7 @@
     "register:UmbrellaFeeds": "tsx src/register_UmbrellaFeeds.ts",
     "example:fetch_price": "tsx src/example_fetch_price.ts",
     "register:StakingBank": "tsx src/register_StakingBank.ts",
+    "factory:deploy": "tsx src/reader_factory_deploy.ts",
     "test": "asp -s"
   },
   "repository": {
