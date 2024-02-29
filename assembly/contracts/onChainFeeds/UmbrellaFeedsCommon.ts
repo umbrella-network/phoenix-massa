@@ -77,6 +77,7 @@ export class PriceData implements Serializable {
         return `PriceData: ${this.price}, h: ${this.heartbeat}, ts: ${this.timestamp}`;
     }
 
+    /*
     @inline @operator('==')
     static eq(a: PriceData, b: PriceData): bool {
         return a.data === b.data &&
@@ -84,7 +85,7 @@ export class PriceData implements Serializable {
             a.timestamp === b.timestamp &&
             a.price === b.price;
     }
-
+    */
 }
 
 // Emulate abi.encode

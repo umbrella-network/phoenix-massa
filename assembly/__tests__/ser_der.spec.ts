@@ -8,7 +8,15 @@ describe("priceData ser / der", () => {
 
         let ser = priceData.serialize();
 
-        let priceData2 = new PriceData();
+        let priceData2: PriceData = new PriceData();
         priceData2.deserialize(ser).unwrap();
+
+        expect(priceData).toStrictEqual(priceData2);
+
+        let priceData3: PriceData = new PriceData();
+        priceData3.try_deserialize(ser).unwrap();
+
+        expect(priceData).toStrictEqual(priceData3);
+        expect(priceData2).toStrictEqual(priceData3);
     });
 });
