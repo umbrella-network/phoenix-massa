@@ -60,6 +60,7 @@
   },
   "homepage": "https://github.com/massalabs/umbrella#readme",
   "devDependencies": {
+    "@as-pect/cli": "^8.1.0",
     "@indeliblelabs/keccak256": "^1.0.0",
     "@massalabs/as-transformer": "^0.2.1",
     "@massalabs/as-types": "^2.0.0",
