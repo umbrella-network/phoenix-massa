@@ -65,10 +65,10 @@ export class PriceData implements Serializable {
         }
 
         // Safe for all unwrap calls here
-        this.data = args.nextU8().unwrap();
-        this.heartbeat = args.nextU32().unwrap();
-        this.timestamp = args.nextU32().unwrap();
-        this.price = args.nextU128().unwrap();
+        this.data = _data.unwrap();
+        this.heartbeat = _heartbeat.unwrap();
+        this.timestamp = _timestamp.unwrap();
+        this.price = _price.unwrap();
         return new Result(args.offset);
     }
 
@@ -76,6 +76,15 @@ export class PriceData implements Serializable {
     public toString(): string {
         return `PriceData: ${this.price}, h: ${this.heartbeat}, ts: ${this.timestamp}`;
     }
+
+    @inline @operator('==')
+    static eq(a: PriceData, b: PriceData): bool {
+        return a.data === b.data &&
+            a.heartbeat === b.heartbeat &&
+            a.timestamp === b.timestamp &&
+            a.price === b.price;
+    }
+
 }
 
 // Emulate abi.encode
