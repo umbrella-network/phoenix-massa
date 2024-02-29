@@ -235,9 +235,9 @@ abstract class BytesLen implements Serializable {
             this.offset_ser += arg.length;
         } else if (arg instanceof string) {
             let _arg = stringToBytes(arg);
-            assert(this.offset_ser + arg.length <= MAX_LEN);
+            assert(this.offset_ser + _arg.length <= MAX_LEN);
             memory.copy(changetype<usize>(this.serialized) + this.offset_ser, changetype<usize>(_arg), _arg.length);
-            this.offset_ser += arg.length;
+            this.offset_ser += _arg.length;
         }
         else {
             ERROR("Do not know how to serialize the given type");
