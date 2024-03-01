@@ -114,8 +114,8 @@ async function updatePrices(client: Client, scAddr: string, args: Args) {
 
     let [estimated_gas, estimated_storage_cost] = await getDynamicCosts(
         client, scAddr, "update", args.serialize());
-    // console.log(`Estimated gas: ${estimated_gas}`);
-    // console.log(`Estimated sto: ${estimated_storage_cost}`);
+    console.log(`Estimated gas: ${estimated_gas}`);
+    console.log(`Estimated sto: ${estimated_storage_cost}`);
 
     const deployerAccount = client.wallet().getBaseAccount()!;
     const operationId = await client.smartContracts().callSmartContract(

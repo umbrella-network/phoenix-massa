@@ -225,6 +225,8 @@ class UmbrellaFeeds {
             let stored_price_data = StorageGetPriceDataOrDefault(_price_key, this.PRICE_KEY_PREFIX);
             // we do not allow for older prices
             // at the same time it prevents from reusing signatures
+            // generateEvent(`stored_price_data ts: ${stored_price_data.timestamp}`);
+            // generateEvent(`_price_data ts: ${_price_data.timestamp}`);
             assert(stored_price_data.timestamp < _price_data.timestamp, "OldData"); // OldData
 
             StorageSetPriceData(_price_key, this.PRICE_KEY_PREFIX, _price_data);
