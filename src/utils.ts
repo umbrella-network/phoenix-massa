@@ -153,6 +153,14 @@ export function strToBytes(str: string): Uint8Array {
     return new Uint8Array(Buffer.from(str, 'utf-8'));
 }
 
+function BigIntMin(a: bigint, b: bigint) {
+    if (a <= b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
 export async function getDynamicCosts(
     client: Client,
     targetAddress: string,
@@ -178,7 +186,7 @@ export async function getDynamicCosts(
         // console.log("events", readOnlyCall.info.output_events);
         // console.log("===");
 
-        estimatedGas = BigInt(Math.min(Math.floor(readOnlyCall.info.gas_cost * gas_margin), MAX_GAS_EXECUTE_SC));
+        estimatedGas = BigIntMin(BigInt(Math.floor(readOnlyCall.info.gas_cost * gas_margin)), MAX_GAS_EXECUTE_SC);
         let filteredEvents = readOnlyCall.info.output_events.filter((e) => e.data.includes(prefix));
         // console.log("filteredEvents:", filteredEvents);
         estimatedStorageCost = Math.floor(
