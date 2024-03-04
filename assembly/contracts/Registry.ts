@@ -134,11 +134,11 @@ export function importAddresses(_args: StaticArray<u8>): void {
     let args = new Args(_args);
     let _names: Array<wBytes> = args
         .nextSerializableObjectArray<wBytes>()
-        .expect("Cannot deser _names");
+        .expect("Cannot get _names");
 
     let _destinations: Array<string> = args
         .nextStringArray()
-        .expect("Cannot deser _destinations");
+        .expect("Cannot get _destinations");
 
     let names: Array<StaticArray<u8>> = new Array(_names.length);
     for(let i = 0; i < _names.length; i++) {
@@ -159,7 +159,7 @@ export function importAddresses(_args: StaticArray<u8>): void {
 export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
 
     let args = new Args(_args);
-    let name = args.nextBytes().expect("Cannot deser bytes");
+    let name = args.nextBytes().expect("Cannot get name (bytes) from args");
 
     let reg = new Registry();
     let addr: Address = reg.requireAndGetAddress(name);
@@ -171,13 +171,13 @@ export function requireAndGetAddress(_args: StaticArray<u8>): StaticArray<u8> {
 }
 
 export function getAddress(args: StaticArray<u8>): StaticArray<u8> {
-    let _name = new Args(args).nextBytes().expect("Cannot get bytes (_name)");
+    let _name = new Args(args).nextBytes().expect("Cannot get _name (bytes) from args");
     let reg = new Registry();
     let addr = reg.getAddress(_name);
     return new Args().add(addr.toString()).serialize();
 }
 export function getAddressByString(args: StaticArray<u8>): StaticArray<u8> {
-    let _name: string = new Args(args).nextString().expect("Cannot get string (_name)");
+    let _name: string = new Args(args).nextString().expect("Cannot get _name (string) from args");
     let reg = new Registry();
     let addr = reg.getAddressByString(_name);
     return new Args().add(addr.toString()).serialize();

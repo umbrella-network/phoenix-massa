@@ -35,4 +35,39 @@ export class PriceData implements ISerializable<PriceData> {
   }
 }
 
+export class LatestRoundData implements ISerializable<LatestRoundData> {
+
+  private roundId: bigint;
+  private answer: bigint;
+  private startedAt: bigint;
+  private updatedAt: bigint;
+  private answeredInRound: bigint;
+
+  constructor(roundId: bigint = 0n, answer: bigint = 0n, startedAt: bigint = 0n, updatedAt: bigint = 0n, answeredInRound: bigint = 0n) {
+    this.roundId = roundId;
+    this.answer = answer;
+    this.startedAt = startedAt;
+    this.updatedAt = updatedAt;
+    this.answeredInRound = answeredInRound;
+  }
+
+  serialize(): Uint8Array {
+    let args = new Args()
+        .addU64(this.roundId)
+        .addU256(this.answer)
+        .addU256(this.startedAt)
+        .addU256(this.updatedAt)
+        .addU64(this.answeredInRound)
+    return new Uint8Array(args.serialize());
+  }
+  deserialize(data: Uint8Array, offset: number): IDeserializedResult<LatestRoundData> {
+    const args = new Args(data, offset);
+    this.roundId = args.nextU64();
+    this.answer = args.nextU256();
+    this.startedAt = args.nextU256();
+    this.updatedAt = args.nextU256();
+    this.answeredInRound = args.nextU64();
+    return { instance: this, offset: args.getOffset() };
+  }
+}
 
