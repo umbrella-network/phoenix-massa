@@ -6,7 +6,8 @@ import {fileURLToPath} from "url";
 export type DeployedContracts = {
   Registry: string;
   StakingBankStaticDev: string;
-  UmbrellaFeeds:string;
+  UmbrellaFeeds: string;
+  UmbrellaFeedsReaderFactory: string;
 }
 
 const __filename = fileURLToPath(import.meta.url);

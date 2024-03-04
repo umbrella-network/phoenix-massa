@@ -9,6 +9,8 @@ async function main() {
     let [opStatus2, events2] = await pollEvents(client, operationId, true);
     console.log("[main] events:", events2);
     okStatusOrThrow(opStatus2);
+
+
 }
 
 main();

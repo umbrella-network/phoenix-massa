@@ -5,7 +5,7 @@ import {
     EOperationStatus,
     IAccount,
     IEvent,
-    IReadData,
+    IReadData, MAX_GAS_EXECUTE_SC,
     WalletClient
 } from "@massalabs/massa-web3";
 import {deploySC} from "@massalabs/massa-sc-deployer";
@@ -16,8 +16,6 @@ config({
     path: `.env`,
     example: `.env.example`,
 });
-
-const MAX_GAS = 3980167295n;
 
 export const getClient = async (): Promise<{
     client: Client;
@@ -62,7 +60,7 @@ export async function deploySc(account: IAccount, chainId: bigint, scPath: strin
         ],
         chainId,
         0n, // fees
-        MAX_GAS,
+        MAX_GAS_EXECUTE_SC,
         false, // wait for the first event to be emitted and print it into the console.
     );
     return deploy_sc.opId;
@@ -162,7 +160,7 @@ export async function getDynamicCosts(
     parameter: number[],
 ): Promise<[bigint, number]> {
 
-    const MAX_GAS = 4294967295; // Max gas for an op on Massa blockchain
+    const MAX_GAS = MAX_GAS_EXECUTE_SC; // Max gas for an op on Massa blockchain
     const gas_margin = 1.2;
     let estimatedGas: bigint = BigInt(MAX_GAS);
     const prefix = "Estimated storage cost: ";
@@ -180,7 +178,7 @@ export async function getDynamicCosts(
         // console.log("events", readOnlyCall.info.output_events);
         // console.log("===");
 
-        estimatedGas = BigInt(Math.min(Math.floor(readOnlyCall.info.gas_cost * gas_margin), MAX_GAS));
+        estimatedGas = BigInt(Math.min(Math.floor(readOnlyCall.info.gas_cost * gas_margin), MAX_GAS_EXECUTE_SC));
         let filteredEvents = readOnlyCall.info.output_events.filter((e) => e.data.includes(prefix));
         // console.log("filteredEvents:", filteredEvents);
         estimatedStorageCost = Math.floor(

@@ -1,5 +1,6 @@
 {
-  "Registry": "AS12RiGCDmZYQcmwHJtw1MEyvjzs371eb89jYNKdArdX4ZBHDYF9v",
-  "StakingBankStaticDev": "AS16ojCRnNzfTVVjsW5epeq3H9EbR2GuGrMx9gR7REXmx3azRk1e",
-  "UmbrellaFeeds": "AS1i59cRLLwUw64cHCzM6CWvHB5wmN1hhy5mVFZ7NKnBzbfVmJZr"
+  "Registry": "AS1nFa8asxCij1FTmpSfs6nLzgFMsnk4YhshQNScHdV8FDBmu1qk",
+  "StakingBankStaticDev": "AS12Y5erpr8qfnhRawgNciyW4rJeBQqf5Riduh5dSYLkjJQJZodR2",
+  "UmbrellaFeeds": "AS12Tm9Qsex3nx6F9AZkSy7CidaPKcNoDoGYf9quWyeJ1tJg6CKk3",
+  "UmbrellaFeedsReaderFactory": "AS12jhaAoMWZgNxVbuPuiwzSx2XWdqo8N9uj6WWU5xoj8iBtdBh1r"
 }
