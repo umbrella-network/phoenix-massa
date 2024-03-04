@@ -24,6 +24,10 @@ const __dirname = path.dirname(path.dirname(__filename));
 async function main() {
     // main entry function
 
+    if (!process.env.VALIDATORS_COUNT) {
+        throw new Error("VALIDATORS_COUNT env variable is not set");
+    }
+
     const {client, account, chainId} = await getClient();
 
     const jsonData = getDeployedContracts();

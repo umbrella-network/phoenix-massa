@@ -24,12 +24,10 @@ VALIDATORS_COUNT=2
 
 Note that VALIDATORS_COUNT should be set the corresponding number of validators in the deployed StakingBankStaticXXX SC.
 
-And create an empty .env.example file.
-
-## Build
+## Build & Deploy (UmbrellaFeeds)
 
 ```commandline
-npm install --legacy-peer-deps
+npm install
 ```
 
 Build:
@@ -41,7 +39,7 @@ npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:Um
 Deploy:
 
 ```commandline
-npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds
+npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds && npm run register:UmbrellaFeeds
 ```
 
 Update prices (test):
@@ -61,6 +59,26 @@ Update StakingBankStaticDev.ts with those public keys, then re deploy and run:
 
 ```commandline
 npm run update:UmbrellaFeeds
+```
+
+## Build & Deploy (UmbrellaFeedsReaderFactory)
+
+Build:
+
+```commandline
+npm run build:UmbrellaFeedsReaderFactory && npm run build:UmbrellaFeedsReader:release
+```
+
+Deploy:
+
+```commandline
+npm run deploy:UmbrellaFeedsReaderFactory
+```
+
+Deploy a `UmbrellaFeedsReader` from factory:
+
+```commandline
+npm run factory:deploy
 ```
 
 # Dev misc
