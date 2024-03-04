@@ -1,6 +1,6 @@
 {
   "name": "umbrella",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -46,7 +46,8 @@
     "register:UmbrellaFeeds": "tsx src/register_UmbrellaFeeds.ts",
     "example:fetch_price": "tsx src/example_fetch_price.ts",
     "register:StakingBank": "tsx src/register_StakingBank.ts",
-    "test": "asp"
+    "factory:deploy": "tsx src/reader_factory_deploy.ts",
+    "test": "asp -s"
   },
   "repository": {
     "type": "git",
@@ -59,6 +60,7 @@
   },
   "homepage": "https://github.com/massalabs/umbrella#readme",
   "devDependencies": {
+    "@as-pect/cli": "^8.1.0",
     "@indeliblelabs/keccak256": "^1.0.0",
     "@massalabs/as-transformer": "^0.2.1",
     "@massalabs/as-types": "^2.0.0",

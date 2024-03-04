@@ -16,9 +16,9 @@ import {
 } from "./StakingBankStatic";
 
 // Validator 0 Public Key
-const VALIDATOR_0: string = "P12UussnRjZBKLAT9WawXK6zZMh2TAxWuf3vqZstW1EVVqPx8cRr";
+const VALIDATOR_0: string = "P1A8NuAPycwfdTiPVr75enmSUW2dRotcxCHiR1LSpZduHLDiERm";
 // Validator 1 Public Key
-const VALIDATOR_1: string = "P1J8YRCg76iKDQY2FxhrqfMVTbDQnhF3zgCmCRnYaaDSEEjwHNb";
+const VALIDATOR_1: string = "P1dU2kKBMNRsnV2FNr4PVkXDFzUbVPHN5QLxSuo7X6vaYt5Gip7";
 
 class StakingBankStaticDev extends StakingBankStatic {
 

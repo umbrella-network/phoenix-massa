@@ -8,12 +8,12 @@ import {getDeployedContracts} from "./common/deployed";
 async function main() {
     // main entry function
 
-    const {client, account} = await getClient();
+    const {client, account, chainId} = await getClient();
 
     const jsonData = getDeployedContracts();
     const umbfScAddr = jsonData.UmbrellaFeeds;
 
-    const updateArgs = await dummyPrices(client, umbfScAddr);
+    const updateArgs = await dummyPrices(client, chainId, umbfScAddr);
     console.log("[main] Updating prices...");
     let operationId = await updatePrices(client, umbfScAddr, updateArgs);
     let [opStatus, events] = await pollEvents(client, operationId, true);
@@ -60,7 +60,7 @@ async function main() {
 
 main();
 
-async function dummyPrices(client: Client, umbfAddr: string): Promise<Args> {
+async function dummyPrices(client: Client, chainId: bigint, umbfAddr: string): Promise<Args> {
 
     // Dummy prices for pairs: BTC-USD & ETH-USD, signed by VALIDATOR_0 & VALIDATOR_1 (in env file)
 
@@ -79,12 +79,15 @@ async function dummyPrices(client: Client, umbfAddr: string): Promise<Args> {
 
     // Need to add VALIDATOR_0 && VALIDATOR_1 to wallet
     const walletClient = client.wallet();
-    let _ = await walletClient.addSecretKeysToWallet([process.env.VALIDATOR_0_SECRET_KEY!, process.env.VALIDATOR_1_SECRET_KEY!]);
+    let _ = await walletClient.addSecretKeysToWallet([
+        process.env.VALIDATOR_0_SECRET_KEY!,
+        process.env.VALIDATOR_1_SECRET_KEY!
+    ]);
 
     // Until Massa Issue #4388 is fixed, need to encode to base64
 
     let toHash = new Args()
-        .addU256(BigInt(13119191)) // chainid
+        .addU256(chainId)
         .addString(umbfAddr)
         .addSerializableObjectArray(_prices)
         .addSerializableObjectArray(_price_datas)
@@ -95,8 +98,8 @@ async function dummyPrices(client: Client, umbfAddr: string): Promise<Args> {
 
     const wallet = client.wallet();
     // let sig1: ISignature = await wallet.signMessage(toSig, deployerAccount.address());
-    let sig1: ISignature = await wallet.signMessage(toSig, process.env.VALIDATOR_0_ADDRESS!);
-    let sig2: ISignature = await wallet.signMessage(toSig, process.env.VALIDATOR_1_ADDRESS!);
+    let sig1: ISignature = await wallet.signMessage(toSig, chainId, process.env.VALIDATOR_0_ADDRESS!);
+    let sig2: ISignature = await wallet.signMessage(toSig, chainId, process.env.VALIDATOR_1_ADDRESS!);
     let _signatures: Array<NativeType> = [sig1.base58Encoded, sig2.base58Encoded];
     // console.log("_signatures:", _signatures);
     updateArgs.addArray(_signatures, ArrayTypes.STRING);

@@ -196,6 +196,23 @@ describe("Bytes32", () => {
         expect<i32>(mb32Ser.length).toBe(expected.length);
         expect<StaticArray<u8>>(mb32Ser).toStrictEqual(expected);
     });
+    it("Bytes32 + add unicode string", () => {
+        let b32: Bytes32 = new Bytes32().add<string>("🌍");
+        let b32Ser = b32.serialize();
+
+        // from python 3: list(bytearray("🌍".encode("utf-8")))
+        let _expected: Array<u8> = [
+            240, 159, 140, 141, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+        let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
+
+        expect<i32>(expected.length).toBe(32);
+        expect<i32>(b32Ser.length).toBe(expected.length);
+        expect<StaticArray<u8>>(b32Ser).toStrictEqual(expected);
+    });
 });
 
 describe("Bytes4", () => {
@@ -204,8 +221,23 @@ describe("Bytes4", () => {
         let b4: Bytes4 = new Bytes4().add<string>("1111");
         let b4Ser = b4.serialize();
 
+        // from python 3: list(bytearray("1111".encode("utf-8")))
         let _expected: Array<u8> = [
             49, 49, 49, 49,
+        ];
+        let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
+
+        expect<i32>(expected.length).toBe(4);
+        expect<i32>(b4Ser.length).toBe(expected.length);
+        expect<StaticArray<u8>>(b4Ser).toStrictEqual(expected);
+    });
+    it("Bytes4 + add unicode string", () => {
+        let b4: Bytes4 = new Bytes4().add<string>("🌍");
+        let b4Ser = b4.serialize();
+
+        // from python 3: list(bytearray("🌍".encode("utf-8")))
+        let _expected: Array<u8> = [
+            240, 159, 140, 141,
         ];
         let expected: StaticArray<u8> = StaticArray.fromArray(_expected);
 
