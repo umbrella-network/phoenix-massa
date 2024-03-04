@@ -86,7 +86,7 @@ class Registry {
         assert(name.length == 32);
         let _foundAddress = Storage.get(name);
         let foundAddress = new Args(_foundAddress).nextSerializable<Address>().expect("Cannot get foundAddress");
-        assert(foundAddress != new Address("0")); // NameNotRegistered
+        assert(foundAddress != new Address()); // NameNotRegistered
         return foundAddress;
     }
 
