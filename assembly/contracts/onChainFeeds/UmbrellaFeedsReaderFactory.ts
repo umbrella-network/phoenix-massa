@@ -98,8 +98,7 @@ class UmbrellaFeedsReaderFactory {
         }
 
         let _umbfReaderAddr = createSC(fileToByteArray("build/UmbrellaFeedsReader.wasm"));
-        // FIXME: fromMAS ?
-        transferCoins(_umbfReaderAddr, 9_000_000_000);
+        // transferCoins(_umbfReaderAddr, 9_000_000_000);
 
         let umbfReaderConstructorArgs = new Args()
             .add(registryAddrStr)
