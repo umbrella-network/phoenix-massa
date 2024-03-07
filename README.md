@@ -2,13 +2,20 @@
 
 Umbrella Smart Contract (aka price oracle) for Massa blockchain
 
-# Code organisation
+## Code organisation
 
 * assembly: Smart Contract sources (in AssemblyScript aka AS)
 * src: deploy scripts (in typescript (TS))
 * build: build folder where wasm files are written
 
 # Dev
+
+## Create Massa wallet
+
+https://docs.massa.net/docs/massaStation/massa-wallet/account-creation
+
+https://station.massa/plugin/massa-labs/massa-wallet/web-app/account-select
+
 
 ## Setup
 
@@ -66,6 +73,7 @@ npm run update:UmbrellaFeeds
 Build:
 
 ```commandline
+npm run build:UmbrellaFeedsReader
 npm run build:UmbrellaFeedsReaderFactory && npm run build:UmbrellaFeedsReader:release
 ```
 
