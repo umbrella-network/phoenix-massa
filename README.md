@@ -46,7 +46,21 @@ npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:Um
 Deploy:
 
 ```commandline
-npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds && npm run register:UmbrellaFeeds
+npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds && \
+npm run register:UmbrellaFeeds && npm run register:StakingBank
+```
+
+Update Validators/Bank:
+
+
+```commandline
+npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
+# deploy will register under `STAKING_BANK`
+npm run deploy:StakingBankStaticDev
+
+# delete `UmbrellaFeeds` address from `deployed.json` then:
+npm run deploy:UmbrellaFeeds 
+npm run register:UmbrellaFeeds
 ```
 
 Update prices (test):
