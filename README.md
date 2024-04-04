@@ -47,7 +47,7 @@ Deploy:
 
 ```commandline
 npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds && \
-npm run register:UmbrellaFeeds && npm run register:StakingBank
+npm run register:UmbrellaFeeds
 ```
 
 Update Validators/Bank:
@@ -57,6 +57,8 @@ Update Validators/Bank:
 npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
 # deploy will register under `STAKING_BANK`
 npm run deploy:StakingBankStaticDev
+# in case of problems
+npm run register:StakingBank
 
 # delete `UmbrellaFeeds` address from `deployed.json` then:
 npm run deploy:UmbrellaFeeds 
