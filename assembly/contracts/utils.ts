@@ -121,9 +121,10 @@ export function refund(initialBalance: u64): void {
     // generateEvent(`initialBalance: ${initialBalance}`);
     const newBalance: u64 = balance();
     // generateEvent(`newBalance: ${newBalance}`);
-    // Should never assert (or something is seriously wrong in the blockchain)
-    assert(initialBalance >= newBalance, "Runtime error");
-    let balanceDelta: u64 = initialBalance - newBalance;
+    // Notes:
+    // initial balance > new balance: need to pay for some storage cost
+    // initial balance < new balance: some storage has been freed and will be automatically reimbursed
+    let balanceDelta: u64 = initialBalance > newBalance ? initialBalance - newBalance: 0;
     // generateEvent(`balanceDelta: ${balanceDelta}`);
 
     let transferredCoins = Context.transferredCoins();
