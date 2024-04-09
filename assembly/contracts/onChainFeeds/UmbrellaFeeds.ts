@@ -160,7 +160,7 @@ class UmbrellaFeeds {
             Storage.set(this.REGISTRY_KEY, stringToBytes(_contractRegistry.toString()));
             Storage.set(this.REQUIRED_SIGNATURES_KEY, toBytes<u8>(_requiredSignatures));
 
-            let staking_bank_bytes32 = new Args().add(new Bytes32().add("STAKING_BANK").serialize());
+            let staking_bank_bytes32 = new Args().add(new Bytes32().add("StakingBank").serialize());
             let _staking_bank = call(_contractRegistry, "requireAndGetAddress", staking_bank_bytes32, 0);
             let staking_bank = new Address(bytesToString(_staking_bank));
             isStakingBankStatic(staking_bank);
