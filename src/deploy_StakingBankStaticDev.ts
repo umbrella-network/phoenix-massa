@@ -10,6 +10,7 @@ import {
     pollEvents,
     okStatusOrThrow,
     getScAddressFromEvents,
+    VALIDATORS_COUNT
 } from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {Bytes32} from "./serializables/bytes32";
@@ -24,7 +25,7 @@ const __dirname = path.dirname(path.dirname(__filename));
 async function main() {
     // main entry function
 
-    if (!process.env.VALIDATORS_COUNT) {
+    if (!VALIDATORS_COUNT) {
         throw new Error("VALIDATORS_COUNT env variable is not set");
     }
 
@@ -48,7 +49,7 @@ async function main() {
     const coins = fromMAS(0.1);
 
     let scAddr = bankScAddr;
-    let args = new Args().addU256(BigInt(process.env.VALIDATORS_COUNT!));
+    let args = new Args().addU256(BigInt(VALIDATORS_COUNT!));
 
     if (needDeploy_) {
         console.log("Contract has changed, need to deploy it...");

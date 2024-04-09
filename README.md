@@ -40,13 +40,16 @@ npm install
 Build:
 
 ```commandline
-npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
+npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:StakingBankStaticSbx && npm run build:UmbrellaFeeds
 ```
 
 Deploy:
 
 ```commandline
-npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds && \
+ENV=dev npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds && \
+npm run register:UmbrellaFeeds
+
+ENV=sbx npm run deploy:Registry && npm run deploy:StakingBankStaticSbx && npm run deploy:UmbrellaFeeds && \
 npm run register:UmbrellaFeeds
 ```
 

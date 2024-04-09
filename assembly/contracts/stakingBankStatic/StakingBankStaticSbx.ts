@@ -15,8 +15,10 @@ import {
 } from "./StakingBankStatic";
 import {EvmAddress} from "../utils";
 
-const VALIDATOR_0 = EvmAddress.fromHex("0xE3bDa0C6E1fBB111091Dfef6f22a673b20Ea5F50");
-const VALIDATOR_1 = EvmAddress.fromHex("0xc1773490F00963CBAb3841fc07C1a0796E658Ba2");
+// Validator 0 Public Key
+const VALIDATOR_0: string = "P129SxWyVEzZQUAZQ1B3He2z2HUWeo356expwRPahB8eisF7aGN2";
+// Validator 1 Public Key
+const VALIDATOR_1: string = "P188DpPCQpQ7BZEFrsvPumT5CNrGGeWbYTXFkqEVgBbSPjScYMy";
 
 class StakingBankStaticSbx extends StakingBankStatic {
 
