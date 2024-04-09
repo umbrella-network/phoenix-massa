@@ -6,9 +6,11 @@ import {getDynamicCosts} from "../utils";
 
 export async function importAddresses(client: Client, contractName: keyof DeployedContracts): Promise<string> {
   const deployed = getDeployedContracts();
+  const bank_name = 'StakingBank';
 
-  let bank_name: Uint8Array = new Bytes32().addString(contractName).serialize();
-  let _names: Array<wBytes> = [new wBytes(bank_name)];
+  let contract_name: Uint8Array = new Bytes32()
+    .addString(contractName.startsWith(bank_name) ? 'STAKING_BANK' : contractName).serialize();
+  let _names: Array<wBytes> = [new wBytes(contract_name)];
   let _destinations: Array<string> = [deployed[contractName]];
   // console.log("_destinations", _destinations, _destinations.length);
   let importAddressesArgs = new Args();
