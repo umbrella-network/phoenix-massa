@@ -55,9 +55,11 @@ Update Validators/Bank:
 
 ```commandline
 npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
+
 # deploy will register under `STAKING_BANK`
 npm run deploy:StakingBankStaticDev
-# in case of problems
+
+# in case of problems, register it manually:
 npm run register:StakingBank
 
 # delete `UmbrellaFeeds` address from `deployed.json` then:
