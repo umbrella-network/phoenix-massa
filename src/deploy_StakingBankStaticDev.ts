@@ -102,7 +102,7 @@ async function updateRegistry(client: Client, registryAddr: string, bankAddr: st
     // Call Registry.importAddresses in order to store Staking bank address
     // Note that it is used when deploying UmbrellaFeeds Smart Contract
 
-    let bank_name: Uint8Array = new Bytes32().addString("StakingBank").serialize();
+    let bank_name: Uint8Array = new Bytes32().addString("STAKING_BANK").serialize();
     let _names: Array<wBytes> = [new wBytes(bank_name)];
     let _destinations: Array<string> = [bankAddr];
     // console.log("_destinations", _destinations, _destinations.length);
@@ -147,7 +147,7 @@ async function getAddresses(client: Client, scAddr: string) {
     return addresses;
 }
 
-async function registryGetAddressByString(client: Client, registryAddr: string, query: string = "StakingBank") {
+async function registryGetAddressByString(client: Client, registryAddr: string, query: string = "STAKING_BANK") {
 
     let readData: IReadData = {
         maxGas: BigInt(10_000_000),

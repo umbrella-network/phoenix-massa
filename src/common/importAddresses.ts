@@ -9,7 +9,7 @@ export async function importAddresses(client: Client, contractName: keyof Deploy
   const bank_name = 'StakingBank';
 
   let contract_name: Uint8Array = new Bytes32()
-    .addString(contractName.startsWith(bank_name) ? 'StakingBank' : contractName).serialize();
+    .addString(contractName.startsWith(bank_name) ? 'STAKING_BANK' : contractName).serialize();
   let _names: Array<wBytes> = [new wBytes(contract_name)];
   let _destinations: Array<string> = [deployed[contractName]];
   // console.log("_destinations", _destinations, _destinations.length);
