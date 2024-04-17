@@ -7,7 +7,7 @@ async function main() {
     const {client, account} = await getClient();
 
     console.log(`Updating Registry with StakingBank...`);
-    const operationId = await importAddresses(client, "StakingBankStaticDev");
+    const operationId = await importAddresses(client, "StakingBankStatic");
     let [opStatus2, events2] = await pollEvents(client, operationId, true);
     console.log("[main] events:", events2);
     okStatusOrThrow(opStatus2);
