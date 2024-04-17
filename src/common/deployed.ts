@@ -5,10 +5,12 @@ import {fileURLToPath} from "url";
 
 export type DeployedContracts = {
   Registry: string;
-  StakingBankStaticDev: string;
+  StakingBankStatic: string;
   UmbrellaFeeds: string;
   UmbrellaFeedsReaderFactory: string;
 }
+
+if (!process.env.ENV) throw new Error('set ENV to: dev, sbx, prod');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(path.dirname(__filename));
