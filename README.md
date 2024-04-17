@@ -45,12 +45,11 @@ npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:St
 
 Deploy:
 
-```commandline
-ENV=dev npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds && \
-npm run register:UmbrellaFeeds
-
-ENV=sbx npm run deploy:Registry && npm run deploy:StakingBankStaticSbx && npm run deploy:UmbrellaFeeds && \
-npm run register:UmbrellaFeeds
+```shell
+ENV=sbx npm run deploy:Registry 
+ENV=sbx npm run deploy:StakingBankStatic 
+ENV=sbx npm run deploy:UmbrellaFeeds
+ENV=sbx npm run register:UmbrellaFeeds
 ```
 
 Update Validators/Bank:

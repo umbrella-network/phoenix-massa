@@ -22,6 +22,8 @@ const WALLET_SECRET_KEY = process.env[`${env}_WALLET_SECRET_KEY`];
 const MASSA_CHAIN_ID = process.env[`${env}_MASSA_CHAIN_ID`];
 const JSON_RPC_URL_PUBLIC = process.env[`${env}_JSON_RPC_URL_PUBLIC`];
 export const VALIDATORS_COUNT = process.env[`${env}_VALIDATORS_COUNT`];
+const bankSuffix = `${env[0].toUpperCase()}${env.slice(1).toLowerCase()}`
+export const STAKING_BANK_CONTRACT_NAME = `StakingBankStatic${bankSuffix}`;
 
 export const getClient = async (): Promise<{
     client: Client;

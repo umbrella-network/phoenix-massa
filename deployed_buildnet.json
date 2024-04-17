@@ -1,6 +1,6 @@
 {
   "Registry": "AS1Zab66tWXB4agrx4FQ1tdv6CysP2u26is4USj7tL61e8f6qqVX",
-  "StakingBankStaticDev": "AS1AF7ChiyPmswhJ8P3cv3zUtqzj1uDQ9Dg9UjqfkE7tFh2sUk3N",
+  "StakingBankStatic": "AS1AF7ChiyPmswhJ8P3cv3zUtqzj1uDQ9Dg9UjqfkE7tFh2sUk3N",
   "UmbrellaFeeds": "AS1wBL8p2QwbbuY6fdKuHNy4onTbyza6BiUNytvtDdZxhBMbvwe7",
   "UmbrellaFeedsReaderFactory": ""
 }

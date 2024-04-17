@@ -38,7 +38,7 @@
     "build": "run-s build:*",
     "deploy:Dummy": "tsx src/deploy_Dummy.ts",
     "deploy:Registry": "tsx src/deploy_Registry.ts",
-    "deploy:StakingBankStaticDev": "tsx src/deploy_StakingBankStaticDev.ts",
+    "deploy:StakingBankStatic": "tsx src/deploy_StakingBankStatic.ts",
     "deploy:UmbrellaFeeds": "tsx src/deploy_UmbrellaFeeds.ts",
     "deploy:UmbrellaFeedsReader": "tsx src/deploy_UmbrellaFeedsReader.ts",
     "deploy:UmbrellaFeedsReaderFactory": "tsx src/deploy_UmbrellaFeedsReaderFactory.ts",
