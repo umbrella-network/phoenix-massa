@@ -59,7 +59,7 @@ Update Validators/Bank:
 npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
 
 # deploy will register under `STAKING_BANK`
-npm run deploy:StakingBankStaticDev
+npm run deploy:StakingBankStatic
 
 # in case of problems, register it manually:
 npm run register:StakingBank
