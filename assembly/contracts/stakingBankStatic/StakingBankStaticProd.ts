@@ -106,7 +106,7 @@ export function validators(args: StaticArray<u8>): StaticArray<u8> {
 }
 
 export function verifyValidators(_args: StaticArray<u8>): StaticArray<u8> {
-    let args = new Args();
+    let args = new Args(_args);
     let addresses = args.nextStringArray().expect("Cannot get addresses");
     let stb = new StakingBankStaticProd();
     let ret = stb.verifyValidators(addresses);
