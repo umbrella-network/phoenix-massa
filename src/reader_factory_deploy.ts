@@ -9,7 +9,7 @@ import {
     fromMAS
 } from "@massalabs/massa-web3";
 
-import {getClient, getDynamicCosts, okStatusOrThrow, pollEvents} from "./utils";
+import {getClient, getDynamicCosts, getMinimalFees, okStatusOrThrow, pollEvents} from "./utils";
 import {getDeployedContracts} from "./common/deployed";
 import {Address} from "@massalabs/massa-as-sdk";
 import {LatestRoundData} from "./serializables/umbrella";
@@ -50,7 +50,7 @@ async function deployReader(client: Client, chaindId: bigint, scAddr: string, fe
     const deployerAccount = client.wallet().getBaseAccount()!;
     const operationId = await client.smartContracts().callSmartContract(
         {
-            fee: 0n,
+            fee: await getMinimalFees(client),
             // maxGas: 70_000_000n,
             // coins: 0n,
             maxGas: MAX_GAS_EXECUTE_SC,
