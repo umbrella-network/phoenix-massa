@@ -1,4 +1,4 @@
-import {getClient, getDynamicCosts, okStatusOrThrow, pollEvents} from "./utils";
+import {getClient, getDynamicCosts, getMinimalFees, okStatusOrThrow, pollEvents} from "./utils";
 import {Client, Args, ISignature, NativeType, ArrayTypes, IReadData} from "@massalabs/massa-web3";
 import keccak256 from "@indeliblelabs/keccak256";
 import {wBytes} from "./serializables/wBytes";
@@ -120,7 +120,7 @@ async function updatePrices(client: Client, scAddr: string, args: Args) {
     const deployerAccount = client.wallet().getBaseAccount()!;
     const operationId = await client.smartContracts().callSmartContract(
         {
-            fee: 0n,
+            fee: await getMinimalFees(client),
             // maxGas: 70_000_000n,
             // coins: 0n,
             maxGas: estimated_gas,

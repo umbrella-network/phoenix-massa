@@ -10,7 +10,7 @@ import {
     pollEvents,
     okStatusOrThrow,
     getScAddressFromEvents,
-    VALIDATORS_COUNT, STAKING_BANK_CONTRACT_NAME
+    VALIDATORS_COUNT, STAKING_BANK_CONTRACT_NAME, getMinimalFees
 } from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {Bytes32} from "./serializables/bytes32";
@@ -118,7 +118,7 @@ async function updateRegistry(client: Client, registryAddr: string, bankAddr: st
 
     const operationId = await client.smartContracts().callSmartContract(
         {
-            fee: 0n,
+            fee: await getMinimalFees(client),
             maxGas: 70_000_000n,
             // coins: 1_000_000_000n,
             coins: 0n,

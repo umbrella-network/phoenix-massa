@@ -208,3 +208,8 @@ export async function getDynamicCosts(
     }
     return [estimatedGas, estimatedStorageCost];
 }
+
+export async function getMinimalFees(client: Client): Promise<bigint> {
+    const {minimal_fees} = (await client.publicApi().getNodeStatus()) as unknown as {minimal_fees: string};
+    return BigInt(Math.trunc(parseFloat(minimal_fees ?? '0') * 1e9));
+}
