@@ -1,5 +1,5 @@
 import {
-    Args,
+    Args, CHAIN_ID,
     Client,
     ClientFactory, DefaultProviderUrls,
     EOperationStatus,
@@ -19,9 +19,10 @@ config({
 
 const env = (process.env.ENV ?? 'dev').toUpperCase();
 const WALLET_SECRET_KEY = process.env[`${env}_WALLET_SECRET_KEY`];
-const MASSA_CHAIN_ID = process.env[`${env}_MASSA_CHAIN_ID`];
+const MASSA_CHAIN_ID = env == 'PROD' ? CHAIN_ID.MainNet : CHAIN_ID.BuildNet;
 const JSON_RPC_URL_PUBLIC = process.env[`${env}_JSON_RPC_URL_PUBLIC`];
 export const VALIDATORS_COUNT = process.env[`${env}_VALIDATORS_COUNT`];
+export const REQUIRED_SIGNATURES = parseInt(process.env[`${env}_REQUIRED_SIGNATURES`] ?? '0');
 const bankSuffix = `${env[0].toUpperCase()}${env.slice(1).toLowerCase()}`
 export const STAKING_BANK_CONTRACT_NAME = `StakingBankStatic${bankSuffix}`;
 
@@ -38,13 +39,16 @@ export const getClient = async (): Promise<{
         throw new Error("MASSA_CHAIN_ID env variable is not set");
     }
     const account = await WalletClient.getAccountFromSecretKey(WALLET_SECRET_KEY);
-    // console.log('Using account: ', account.address);
-    const chainId = BigInt(MASSA_CHAIN_ID);
+    console.log('Using ENV: ', env);
+    console.log('Using account: ', account.address);
+    const chainId = MASSA_CHAIN_ID;
+    console.log('Using chainId: ', chainId);
+    console.log('JSON_RPC_URL_PUBLIC: ', JSON_RPC_URL_PUBLIC);
 
     return {
         client: await ClientFactory.createDefaultClient(
             JSON_RPC_URL_PUBLIC as DefaultProviderUrls,
-            BigInt(MASSA_CHAIN_ID),
+            chainId,
             false,
             account,
         ),
@@ -53,7 +57,7 @@ export const getClient = async (): Promise<{
     };
 };
 
-export async function deploySc(account: IAccount, chainId: bigint, scPath: string, coins: bigint, args: Args): Promise<string> {
+export async function deploySc(account: IAccount, chainId: bigint, scPath: string, coins: bigint, fees: bigint, args: Args): Promise<string> {
     const deploy_sc = await deploySC(
         JSON_RPC_URL_PUBLIC!,
         account,
@@ -66,7 +70,7 @@ export async function deploySc(account: IAccount, chainId: bigint, scPath: strin
             },
         ],
         chainId,
-        0n, // fees
+        fees,
         MAX_GAS_EXECUTE_SC,
         false, // wait for the first event to be emitted and print it into the console.
     );
@@ -211,5 +215,8 @@ export async function getDynamicCosts(
 
 export async function getMinimalFees(client: Client): Promise<bigint> {
     const {minimal_fees} = (await client.publicApi().getNodeStatus()) as unknown as {minimal_fees: string};
+
+    console.log({minimal_fees});
+
     return BigInt(Math.trunc(parseFloat(minimal_fees ?? '0') * 1e9));
 }

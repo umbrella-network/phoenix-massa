@@ -41,15 +41,16 @@ Build:
 
 ```commandline
 npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:StakingBankStaticSbx && npm run build:UmbrellaFeeds
+npm run build:Registry && npm run build:StakingBankStaticProd && npm run build:UmbrellaFeeds
 ```
 
 Deploy:
 
 ```shell
-ENV=sbx npm run deploy:Registry 
-ENV=sbx npm run deploy:StakingBankStatic 
-ENV=sbx npm run deploy:UmbrellaFeeds
-ENV=sbx npm run register:UmbrellaFeeds
+ENV=prod npm run deploy:Registry 
+ENV=prod npm run deploy:StakingBankStatic 
+ENV=prod npm run deploy:UmbrellaFeeds
+ENV=prod npm run register:UmbrellaFeeds
 ```
 
 Update Validators/Bank:
@@ -100,13 +101,13 @@ npm run build:UmbrellaFeedsReaderFactory && npm run build:UmbrellaFeedsReader:re
 Deploy:
 
 ```commandline
-npm run deploy:UmbrellaFeedsReaderFactory
+ENV=prod npm run deploy:UmbrellaFeedsReaderFactory
 ```
 
 Deploy a `UmbrellaFeedsReader` from factory:
 
 ```commandline
-npm run factory:deploy
+ENV=prod npm run factory:deploy
 ```
 
 # Dev misc
