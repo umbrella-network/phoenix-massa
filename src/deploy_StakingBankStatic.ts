@@ -45,7 +45,8 @@ async function main() {
 
     // Initial SC coins (for gas / coins estimation)
     // TODO: Remove once https://github.com/massalabs/massa/pull/4455 is avail.
-    const coins = fromMAS(0.1);
+    const coins = fromMAS(0.01);
+    const fees = await getMinimalFees(client);
 
     let scAddr = bankScAddr;
     let args = new Args().addU256(BigInt(VALIDATORS_COUNT!));
@@ -58,6 +59,7 @@ async function main() {
             chainId,
             toDeploy,
             coins,
+            fees,
             args
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);
