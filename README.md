@@ -58,6 +58,7 @@ Update Validators/Bank:
 
 ```commandline
 npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
+npm run build:Registry && npm run build:StakingBankStaticProd && npm run build:UmbrellaFeeds
 
 # deploy will register under `STAKING_BANK`
 npm run deploy:StakingBankStatic
