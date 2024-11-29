@@ -20,31 +20,31 @@ const VALIDATOR_0: string = "P12W6zgQb5aykbYSz4CfQLuk3axRcp5jYX1fmBT7VRdgVnzv6oH
 // Validator 1 Public Key
 const VALIDATOR_1: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
 // temp
-const VALIDATOR_2: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_2: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAA";
 // temp
-const VALIDATOR_3: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_3: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAB";
 // temp
-const VALIDATOR_4: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_4: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAC";
 // temp
-const VALIDATOR_5: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_5: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAD";
 // temp
-const VALIDATOR_6: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_6: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAE";
 // temp
-const VALIDATOR_7: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_7: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAF";
 // temp
-const VALIDATOR_8: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_8: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAG";
 // temp
-const VALIDATOR_9: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_9: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAH";
 // temp
-const VALIDATOR_10: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_10: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAI";
 // temp
-const VALIDATOR_11: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_11: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAJ";
 // temp
-const VALIDATOR_12: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_12: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAK";
 // temp
-const VALIDATOR_13: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_13: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAL";
 // temp
-const VALIDATOR_14: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
+const VALIDATOR_14: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAM";
 
 
 class StakingBankStaticProd extends StakingBankStatic {

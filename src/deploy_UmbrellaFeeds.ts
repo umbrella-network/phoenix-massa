@@ -44,7 +44,7 @@ async function main() {
 
     // Initial SC coins (for gas / coins estimation)
     // TODO: Remove once https://github.com/massalabs/massa/pull/4455 is avail.
-    const coins = fromMAS(0.02);
+    const coins = fromMAS(0.5);
     const fees = await getMinimalFees(client);
 
     if (REQUIRED_SIGNATURES == 0) throw new Error('set REQUIRED_SIGNATURES');
