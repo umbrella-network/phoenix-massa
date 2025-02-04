@@ -113,7 +113,7 @@ export function publicKeyToU256(pk: string): u256 {
     let pkDecoded = b58Decode(pk.slice(1));
     // Remove version (0) and b58 checksum (at the end)
     let pkb32 = pkDecoded.slice(1, pkDecoded.length - 4);
-    return u256.fromUint8ArrayLE(pkb32);
+    return u256.fromUint8ArrayBE(pkb32);
 }
 
 export function refund(initialBalance: u64): void {

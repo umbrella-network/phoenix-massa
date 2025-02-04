@@ -2,7 +2,7 @@ import {
     Args,
     Client,
     ClientFactory, DefaultProviderUrls,
-    EOperationStatus,
+    EOperationStatus, fromMAS,
     IAccount,
     IEvent,
     IReadData, MAX_GAS_EXECUTE_SC,
@@ -59,7 +59,7 @@ export async function deploySc(account: IAccount, chainId: bigint, scPath: strin
             },
         ],
         chainId,
-        0n, // fees
+        fromMAS(0.01), // fees
         MAX_GAS_EXECUTE_SC,
         false, // wait for the first event to be emitted and print it into the console.
     );
