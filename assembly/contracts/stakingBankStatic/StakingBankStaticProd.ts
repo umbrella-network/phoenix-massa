@@ -19,32 +19,32 @@ import {
 const VALIDATOR_0: string = "P12W6zgQb5aykbYSz4CfQLuk3axRcp5jYX1fmBT7VRdgVnzv6oHH";
 // Validator 1 Public Key
 const VALIDATOR_1: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeFa";
-// temp
-const VALIDATOR_2: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAA";
-// temp
-const VALIDATOR_3: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAB";
-// temp
-const VALIDATOR_4: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAC";
-// temp
-const VALIDATOR_5: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAD";
-// temp
-const VALIDATOR_6: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAE";
-// temp
+// https://umbrella.artemahr.tech
+const VALIDATOR_2: string = "P1241HUkWn3JiFR1DaFAeHs45W28cGyuXo7UuZW7YD8HTqJBYjuL";
+// https://umb.vtabsolutions.com:3030
+const VALIDATOR_3: string = "P1ApngdeUh6mVFmraDuajEX7k47yGftDGCQvY8eY4BritMwjwcF";
+// https://umbrella.crazywhale.es
+const VALIDATOR_4: string = "P12grHhPHfvRhujjLfdDzN4yvoPC1XkdehPVW7HB9kjJkXDzKXJL";
+// https://umbrella-node.gateomega.com
+const VALIDATOR_5: string = "P1FW2ey9wCEhgmtHV1QGqbrcivXawYv1mY75tRZJao8d4gfzgMm";
+// https://umb.anorak.technology
+const VALIDATOR_6: string = "P12TJwFzkrgT5fQ3gJiUTpeQei6D2kQV2SRCoHhNbcXj4CqDoQkC";
+// temp https://umbrella.validator.infstones.io MISSING SETUP
 const VALIDATOR_7: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAF";
-// temp
-const VALIDATOR_8: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAG";
-// temp
-const VALIDATOR_9: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAH";
-// temp
-const VALIDATOR_10: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAI";
-// temp
-const VALIDATOR_11: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAJ";
-// temp
-const VALIDATOR_12: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAK";
-// temp
-const VALIDATOR_13: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAL";
-// temp
-const VALIDATOR_14: string = "P1QV6AsrtPdZqk9BVyMMfFCDgYEaMaSBatnCk8xs1jJzcMGNeAM";
+// https://umb.hashkey.cloud
+const VALIDATOR_8: string = "P129pqQxdWEzyVhvp8jtxkdx62jV2RASdNDAHepMZuUnFHekMnBv";
+// http://umbrella.staking4all.org:3000
+const VALIDATOR_9: string = "P12S51EKn4h7NYVLKk2AXycPzPECGCupuFS6DTeMe1yWmGqrnQ2n";
+// http://5.161.78.230:3000
+const VALIDATOR_10: string = "P1gN7svCytzkDegn3BAnHdtaT1nQux7krzFbj3KiweHgJFnJPpy";
+// https://umb-api.staking.rocks
+const VALIDATOR_11: string = "P1UVGmWSxGxxJqkvauTHuidv2dP9PsdhBEk2vTSXTw59U2ycbQc";
+// https://rpc.urbanhq.net
+const VALIDATOR_12: string = "P1cciVGrADZH1gPnNy1sXu2Q2Gmh4eLrdy5XPhFm7yXhbaigNeT";
+// https://umbrella-node.ankastake.com
+const VALIDATOR_13: string = "P1APYAhYh65R7tGxAsPCi2a3YwWdft8jVrmSSn7BZej3tmxRhPf";
+// https://umbrella.tchambrella.com
+const VALIDATOR_14: string = "P12DjfaK36WN5dVQXKmrjT1MszosKVNViXMvqAnm6wbrV3YLtzqk";
 
 
 class StakingBankStaticProd extends StakingBankStatic {
