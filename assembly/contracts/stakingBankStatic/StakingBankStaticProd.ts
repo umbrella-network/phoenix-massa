@@ -39,7 +39,7 @@ const VALIDATOR_9: string = "P12S51EKn4h7NYVLKk2AXycPzPECGCupuFS6DTeMe1yWmGqrnQ2
 const VALIDATOR_10: string = "P1gN7svCytzkDegn3BAnHdtaT1nQux7krzFbj3KiweHgJFnJPpy";
 // https://umb-api.staking.rocks
 const VALIDATOR_11: string = "P1UVGmWSxGxxJqkvauTHuidv2dP9PsdhBEk2vTSXTw59U2ycbQc";
-// https://rpc.urbanhq.net
+// https://umb.urbanremote.net
 const VALIDATOR_12: string = "P1cciVGrADZH1gPnNy1sXu2Q2Gmh4eLrdy5XPhFm7yXhbaigNeT";
 // https://umbrella-node.ankastake.com
 const VALIDATOR_13: string = "P1APYAhYh65R7tGxAsPCi2a3YwWdft8jVrmSSn7BZej3tmxRhPf";
@@ -91,7 +91,7 @@ class StakingBankStaticProd extends StakingBankStatic {
             return new Validator(_id, "https://umb-api.staking.rocks");
         }
         if (_id == VALIDATOR_12) {
-            return new Validator(_id, "https://rpc.urbanhq.net");
+            return new Validator(_id, "https://umb.urbanremote.net");
         }
         if (_id == VALIDATOR_13) {
             return new Validator(_id, "https://umbrella-node.ankastake.com");
