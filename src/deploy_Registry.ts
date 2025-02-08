@@ -9,7 +9,7 @@ import {
     deploySc,
     pollEvents,
     okStatusOrThrow,
-    getScAddressFromEvents,
+    getScAddressFromEvents, getMinimalFees,
 } from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {getDeployedContracts, saveDeployedContracts} from "./common/deployed";
@@ -36,7 +36,8 @@ async function main() {
 
     // Initial SC coins (for gas / coins estimation)
     // TODO: Remove once https://github.com/massalabs/massa/pull/4455 is avail.
-    const coins = fromMAS(0.5);
+    const coins = fromMAS(0.01);
+    const fees = await getMinimalFees(client);
 
     let scAddr = registryScAddr;
     if (needDeploy_) {
@@ -47,6 +48,7 @@ async function main() {
             chainId,
             toDeploy,
             coins,
+            fees,
             new Args()
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);

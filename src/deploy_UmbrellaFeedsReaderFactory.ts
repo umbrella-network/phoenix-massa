@@ -3,7 +3,15 @@ import path from "path";
 import {fileURLToPath} from "url";
 
 import {Args, fromMAS} from "@massalabs/massa-web3";
-import {getClient, needDeploy, deploySc, pollEvents, okStatusOrThrow, getScAddressFromEvents} from "./utils";
+import {
+    getClient,
+    needDeploy,
+    deploySc,
+    pollEvents,
+    okStatusOrThrow,
+    getScAddressFromEvents,
+    getMinimalFees
+} from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {getDeployedContracts, saveDeployedContracts} from "./common/deployed";
 
@@ -32,6 +40,11 @@ async function main() {
     let scArgs = new Args()
         .addString(registryAddr);
 
+    // Initial SC coins (for gas / coins estimation)
+    // TODO: Remove once https://github.com/massalabs/massa/pull/4455 is avail.
+    const coins = fromMAS(0.1);
+    const fees = await getMinimalFees(client);
+
     if (needDeploy_) {
         console.log("Contract has changed, need to deploy it...");
 
@@ -40,7 +53,8 @@ async function main() {
             account,
             chainId,
             toDeploy,
-            fromMAS(0.1),
+            coins,
+            fees,
             scArgs
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);

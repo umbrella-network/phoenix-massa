@@ -10,12 +10,12 @@ import {
     pollEvents,
     okStatusOrThrow,
     getScAddressFromEvents,
+    VALIDATORS_COUNT, STAKING_BANK_CONTRACT_NAME, getMinimalFees
 } from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {Bytes32} from "./serializables/bytes32";
 import {wBytes} from "./serializables/wBytes";
 import {getDeployedContracts, saveDeployedContracts} from "./common/deployed";
-import {u256} from "as-bignum/assembly";
 
 // globals
 const __filename = fileURLToPath(import.meta.url);
@@ -24,15 +24,19 @@ const __dirname = path.dirname(path.dirname(__filename));
 async function main() {
     // main entry function
 
+    if (!VALIDATORS_COUNT) {
+        throw new Error("VALIDATORS_COUNT env variable is not set");
+    }
+
     const {client, account, chainId} = await getClient();
 
     const jsonData = getDeployedContracts();
-    const bankKey = "StakingBankStaticDev"
-    const bankScAddr = jsonData[bankKey];
+    const bankKey = STAKING_BANK_CONTRACT_NAME
+    const bankScAddr = jsonData["StakingBankStatic"];
     const registryAddr = jsonData.Registry;
 
     let needDeploy_ = true;
-    const toDeploy = path.join(__dirname, 'build', 'StakingBankStaticDev.wasm')
+    const toDeploy = path.join(__dirname, 'build', `${bankKey}.wasm`)
     if (bankScAddr) {
         const toDeployHash = keccak256(readFileSync(toDeploy));
         needDeploy_ = await needDeploy(client, bankScAddr, new Uint8Array(toDeployHash));
@@ -41,10 +45,11 @@ async function main() {
 
     // Initial SC coins (for gas / coins estimation)
     // TODO: Remove once https://github.com/massalabs/massa/pull/4455 is avail.
-    const coins = fromMAS(0.1);
+    const coins = fromMAS(0.01);
+    const fees = await getMinimalFees(client);
 
     let scAddr = bankScAddr;
-    let args = new Args().addU256(BigInt(process.env.VALIDATORS_COUNT!));
+    let args = new Args().addU256(BigInt(VALIDATORS_COUNT!));
 
     if (needDeploy_) {
         console.log("Contract has changed, need to deploy it...");
@@ -54,6 +59,7 @@ async function main() {
             chainId,
             toDeploy,
             coins,
+            fees,
             args
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);
@@ -62,7 +68,7 @@ async function main() {
         scAddr = getScAddressFromEvents(events);
 
         // Update deployed DB with new SC address
-        jsonData[bankKey] = scAddr;
+        jsonData["StakingBankStatic"] = scAddr;
         saveDeployedContracts(jsonData);
         console.log("Successfully wrote file");
         // Update Registry with newly deployed StakingBankStaticDev
@@ -82,9 +88,9 @@ async function main() {
         // console.log("Contract has not changed, no need to deploy it!");
     }
 
-    console.log("[main] SC address (StakingBankStaticDev):", scAddr);
+    console.log(`[main] SC address (${STAKING_BANK_CONTRACT_NAME}):`, scAddr);
 
-    console.log("[main] Calling StakingBankStaticDev.getAddresses...");
+    console.log(`[main] Calling ${STAKING_BANK_CONTRACT_NAME}.getAddresses...`);
     const addresses = await getAddresses(client, scAddr);
     console.log("addresses:", addresses);
     // tmp force exit
@@ -93,12 +99,12 @@ async function main() {
 
 main();
 
-async function updateRegistry(client: Client, registryAddr: string, bankAddr: string, ): Promise<string> {
+async function updateRegistry(client: Client, registryAddr: string, bankAddr: string): Promise<string> {
 
     // Call Registry.importAddresses in order to store Staking bank address
     // Note that it is used when deploying UmbrellaFeeds Smart Contract
 
-    let bank_name: Uint8Array = new Bytes32().addString("STAKING_BANK").serialize();
+    let bank_name: Uint8Array = new Bytes32().addString("StakingBank").serialize();
     let _names: Array<wBytes> = [new wBytes(bank_name)];
     let _destinations: Array<string> = [bankAddr];
     // console.log("_destinations", _destinations, _destinations.length);
@@ -114,7 +120,7 @@ async function updateRegistry(client: Client, registryAddr: string, bankAddr: st
 
     const operationId = await client.smartContracts().callSmartContract(
         {
-            fee: 0n,
+            fee: await getMinimalFees(client),
             maxGas: 70_000_000n,
             // coins: 1_000_000_000n,
             coins: 0n,
@@ -143,7 +149,7 @@ async function getAddresses(client: Client, scAddr: string) {
     return addresses;
 }
 
-async function registryGetAddressByString(client: Client, registryAddr: string, query: string = "STAKING_BANK") {
+async function registryGetAddressByString(client: Client, registryAddr: string, query: string = "StakingBank") {
 
     let readData: IReadData = {
         maxGas: BigInt(10_000_000),

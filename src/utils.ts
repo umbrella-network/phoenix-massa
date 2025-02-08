@@ -1,5 +1,5 @@
 import {
-    Args,
+    Args, CHAIN_ID,
     Client,
     ClientFactory, DefaultProviderUrls,
     EOperationStatus,
@@ -17,27 +17,38 @@ config({
     example: `.env.example`,
 });
 
+const env = (process.env.ENV ?? 'dev').toUpperCase();
+const WALLET_SECRET_KEY = process.env[`${env}_WALLET_SECRET_KEY`];
+const MASSA_CHAIN_ID = env == 'PROD' ? CHAIN_ID.MainNet : CHAIN_ID.BuildNet;
+const JSON_RPC_URL_PUBLIC = process.env[`${env}_JSON_RPC_URL_PUBLIC`];
+export const VALIDATORS_COUNT = process.env[`${env}_VALIDATORS_COUNT`];
+export const REQUIRED_SIGNATURES = parseInt(process.env[`${env}_REQUIRED_SIGNATURES`] ?? '0');
+const bankSuffix = `${env[0].toUpperCase()}${env.slice(1).toLowerCase()}`
+export const STAKING_BANK_CONTRACT_NAME = `StakingBankStatic${bankSuffix}`;
+
 export const getClient = async (): Promise<{
     client: Client;
     account: IAccount;
     chainId: bigint;
 }> => {
-    if (!process.env.WALLET_SECRET_KEY) {
+    if (!WALLET_SECRET_KEY) {
         throw new Error("WALLET_SECRET_KEY env variable is not set");
     }
-    if (!process.env.MASSA_CHAIN_ID) {
+
+    if (!MASSA_CHAIN_ID) {
         throw new Error("MASSA_CHAIN_ID env variable is not set");
     }
-    const account = await WalletClient.getAccountFromSecretKey(
-        process.env.WALLET_SECRET_KEY,
-    );
-    // console.log('Using account: ', account.address);
-    const chainId = BigInt(process.env.MASSA_CHAIN_ID);
+    const account = await WalletClient.getAccountFromSecretKey(WALLET_SECRET_KEY);
+    console.log('Using ENV: ', env);
+    console.log('Using account: ', account.address);
+    const chainId = MASSA_CHAIN_ID;
+    console.log('Using chainId: ', chainId);
+    console.log('JSON_RPC_URL_PUBLIC: ', JSON_RPC_URL_PUBLIC);
 
     return {
         client: await ClientFactory.createDefaultClient(
-            process.env.JSON_RPC_URL_PUBLIC as DefaultProviderUrls,
-            BigInt(process.env.MASSA_CHAIN_ID),
+            JSON_RPC_URL_PUBLIC as DefaultProviderUrls,
+            chainId,
             false,
             account,
         ),
@@ -46,9 +57,9 @@ export const getClient = async (): Promise<{
     };
 };
 
-export async function deploySc(account: IAccount, chainId: bigint, scPath: string, coins: bigint, args: Args): Promise<string> {
+export async function deploySc(account: IAccount, chainId: bigint, scPath: string, coins: bigint, fees: bigint, args: Args): Promise<string> {
     const deploy_sc = await deploySC(
-        process.env.JSON_RPC_URL_PUBLIC!,
+        JSON_RPC_URL_PUBLIC!,
         account,
         [
             {
@@ -59,7 +70,7 @@ export async function deploySc(account: IAccount, chainId: bigint, scPath: strin
             },
         ],
         chainId,
-        0n, // fees
+        fees,
         MAX_GAS_EXECUTE_SC,
         false, // wait for the first event to be emitted and print it into the console.
     );
@@ -153,6 +164,14 @@ export function strToBytes(str: string): Uint8Array {
     return new Uint8Array(Buffer.from(str, 'utf-8'));
 }
 
+function BigIntMin(a: bigint, b: bigint) {
+    if (a <= b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
 export async function getDynamicCosts(
     client: Client,
     targetAddress: string,
@@ -178,7 +197,7 @@ export async function getDynamicCosts(
         // console.log("events", readOnlyCall.info.output_events);
         // console.log("===");
 
-        estimatedGas = BigInt(Math.min(Math.floor(readOnlyCall.info.gas_cost * gas_margin), MAX_GAS_EXECUTE_SC));
+        estimatedGas = BigIntMin(BigInt(Math.floor(readOnlyCall.info.gas_cost * gas_margin)), MAX_GAS_EXECUTE_SC);
         let filteredEvents = readOnlyCall.info.output_events.filter((e) => e.data.includes(prefix));
         // console.log("filteredEvents:", filteredEvents);
         estimatedStorageCost = Math.floor(
@@ -192,4 +211,12 @@ export async function getDynamicCosts(
         );
     }
     return [estimatedGas, estimatedStorageCost];
+}
+
+export async function getMinimalFees(client: Client): Promise<bigint> {
+    const {minimal_fees} = (await client.publicApi().getNodeStatus()) as unknown as {minimal_fees: string};
+
+    console.log({minimal_fees});
+
+    return BigInt(Math.trunc(parseFloat(minimal_fees ?? '0') * 1e9));
 }

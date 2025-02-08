@@ -2,13 +2,15 @@ import {Args, ArrayTypes, Client} from "@massalabs/massa-web3";
 import {Bytes32} from "../serializables/bytes32";
 import {wBytes} from "../serializables/wBytes";
 import {DeployedContracts, getDeployedContracts} from "./deployed";
-import {getDynamicCosts} from "../utils";
+import {getDynamicCosts, getMinimalFees} from "../utils";
 
 export async function importAddresses(client: Client, contractName: keyof DeployedContracts): Promise<string> {
   const deployed = getDeployedContracts();
+  const bank_name = 'StakingBank';
 
-  let bank_name: Uint8Array = new Bytes32().addString(contractName).serialize();
-  let _names: Array<wBytes> = [new wBytes(bank_name)];
+  let contract_name: Uint8Array = new Bytes32()
+    .addString(contractName.startsWith(bank_name) ? 'StakingBank' : contractName).serialize();
+  let _names: Array<wBytes> = [new wBytes(contract_name)];
   let _destinations: Array<string> = [deployed[contractName]];
   // console.log("_destinations", _destinations, _destinations.length);
   let importAddressesArgs = new Args();
@@ -29,7 +31,7 @@ export async function importAddresses(client: Client, contractName: keyof Deploy
 
   return client.smartContracts().callSmartContract(
     {
-      fee: 0n,
+      fee: await getMinimalFees(client),
       maxGas: estimated_gas,
       coins: BigInt(estimated_storage_cost),
       targetAddress: deployed.Registry,

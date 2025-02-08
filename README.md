@@ -2,13 +2,20 @@
 
 Umbrella Smart Contract (aka price oracle) for Massa blockchain
 
-# Code organisation
+## Code organisation
 
 * assembly: Smart Contract sources (in AssemblyScript aka AS)
 * src: deploy scripts (in typescript (TS))
 * build: build folder where wasm files are written
 
 # Dev
+
+## Create Massa wallet
+
+https://docs.massa.net/docs/massaStation/massa-wallet/account-creation
+
+https://station.massa/plugin/massa-labs/massa-wallet/web-app/account-select
+
 
 ## Setup
 
@@ -24,24 +31,44 @@ VALIDATORS_COUNT=2
 
 Note that VALIDATORS_COUNT should be set the corresponding number of validators in the deployed StakingBankStaticXXX SC.
 
-And create an empty .env.example file.
-
-## Build
+## Build & Deploy (UmbrellaFeeds)
 
 ```commandline
-npm install --legacy-peer-deps
+npm install
 ```
 
 Build:
 
 ```commandline
-npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
+npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:StakingBankStaticSbx && npm run build:UmbrellaFeeds
+npm run build:Registry && npm run build:StakingBankStaticProd && npm run build:UmbrellaFeeds
 ```
 
 Deploy:
 
+```shell
+ENV=prod npm run deploy:Registry 
+ENV=prod npm run deploy:StakingBankStatic 
+ENV=prod npm run deploy:UmbrellaFeeds
+ENV=prod npm run register:UmbrellaFeeds
+```
+
+Update Validators/Bank:
+
+
 ```commandline
-npm run deploy:Registry && npm run deploy:StakingBankStaticDev && npm run deploy:UmbrellaFeeds
+npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:UmbrellaFeeds
+npm run build:Registry && npm run build:StakingBankStaticProd && npm run build:UmbrellaFeeds
+
+# deploy will register under `STAKING_BANK`
+npm run deploy:StakingBankStatic
+
+# in case of problems, register it manually:
+npm run register:StakingBank
+
+# delete `UmbrellaFeeds` address from `deployed.json` then:
+npm run deploy:UmbrellaFeeds 
+npm run register:UmbrellaFeeds
 ```
 
 Update prices (test):
@@ -61,6 +88,27 @@ Update StakingBankStaticDev.ts with those public keys, then re deploy and run:
 
 ```commandline
 npm run update:UmbrellaFeeds
+```
+
+## Build & Deploy (UmbrellaFeedsReaderFactory)
+
+Build:
+
+```commandline
+npm run build:UmbrellaFeedsReader
+npm run build:UmbrellaFeedsReaderFactory && npm run build:UmbrellaFeedsReader:release
+```
+
+Deploy:
+
+```commandline
+ENV=prod npm run deploy:UmbrellaFeedsReaderFactory
+```
+
+Deploy a `UmbrellaFeedsReader` from factory:
+
+```commandline
+ENV=prod npm run factory:deploy
 ```
 
 # Dev misc

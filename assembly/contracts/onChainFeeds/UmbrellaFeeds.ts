@@ -160,7 +160,7 @@ class UmbrellaFeeds {
             Storage.set(this.REGISTRY_KEY, stringToBytes(_contractRegistry.toString()));
             Storage.set(this.REQUIRED_SIGNATURES_KEY, toBytes<u8>(_requiredSignatures));
 
-            let staking_bank_bytes32 = new Args().add(new Bytes32().add("STAKING_BANK").serialize());
+            let staking_bank_bytes32 = new Args().add(new Bytes32().add("StakingBank").serialize());
             let _staking_bank = call(_contractRegistry, "requireAndGetAddress", staking_bank_bytes32, 0);
             let staking_bank = new Address(bytesToString(_staking_bank));
             isStakingBankStatic(staking_bank);
@@ -225,6 +225,8 @@ class UmbrellaFeeds {
             let stored_price_data = StorageGetPriceDataOrDefault(_price_key, this.PRICE_KEY_PREFIX);
             // we do not allow for older prices
             // at the same time it prevents from reusing signatures
+            // generateEvent(`stored_price_data ts: ${stored_price_data.timestamp}`);
+            // generateEvent(`_price_data ts: ${_price_data.timestamp}`);
             assert(stored_price_data.timestamp < _price_data.timestamp, "OldData"); // OldData
 
             StorageSetPriceData(_price_key, this.PRICE_KEY_PREFIX, _price_data);
