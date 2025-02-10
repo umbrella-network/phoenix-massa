@@ -14,6 +14,7 @@ import {
     Validator,
     StakingBankStatic
 } from "./StakingBankStatic";
+import {publicKeyToU256} from "../utils";
 
 // Validator 0 Public Key
 const VALIDATOR_0: string = "P12UussnRjZBKLAT9WawXK6zZMh2TAxWuf3vqZstW1EVVqPx8cRr";
@@ -47,9 +48,36 @@ class StakingBankStaticDev extends StakingBankStatic {
         return list;
     }
 
+    _addresses_sorted(): string[] {
+        const NUMBER_OF_VALIDATORS = u256.fromUint8ArrayLE(wrapStaticArray(Storage.get(this.NUMBER_OF_VALIDATORS_KEY)));
+        let list = new Array<string>(NUMBER_OF_VALIDATORS.toU32());
+
+        list[0] = VALIDATOR_0;
+        list[1] = VALIDATOR_1;
+
+        list.sort(sort_public_key);
+
+        return list;
+    }
+
     _isValidator(_validator: string): bool {
         return (_validator == VALIDATOR_0 || _validator == VALIDATOR_1);
     }
+}
+
+function sort_public_key(a: string, b: string): i32 {
+
+    let pub_key_num_1 = publicKeyToU256(a);
+    let pub_key_num_2 = publicKeyToU256(b);
+
+    if (pub_key_num_1 < pub_key_num_2) {
+        return -1;
+    } else if (pub_key_num_1 > pub_key_num_2) {
+        return 1;
+    } else {
+        return 0;
+    }
+
 }
 
 export function constructor(args: StaticArray<u8>): void {
@@ -84,6 +112,12 @@ export function addresses(_args: StaticArray<u8>): StaticArray<u8> {
     let index = args.nextI32().expect("Cannot get index");
     let stb = new StakingBankStaticDev();
     let ret = stb.addresses(index);
+    return new Args().add(ret).serialize();
+}
+
+export function addresses_sorted(): StaticArray<u8> {
+    let stb = new StakingBankStaticDev();
+    let ret = stb._addresses_sorted();
     return new Args().add(ret).serialize();
 }
 
