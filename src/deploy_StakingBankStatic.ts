@@ -93,6 +93,10 @@ async function main() {
     console.log(`[main] Calling ${STAKING_BANK_CONTRACT_NAME}.getAddresses...`);
     const addresses = await getAddresses(client, scAddr);
     console.log("addresses:", addresses);
+    console.log("[main] Calling StakingBankStaticDev.getAddressesSorted...");
+    const addresses_sorted = await getAddressesSorted(client, scAddr);
+    console.log("addresses sorted:", addresses_sorted);
+
     // tmp force exit
     process.exit(0);
 }
@@ -161,3 +165,18 @@ async function registryGetAddressByString(client: Client, registryAddr: string, 
     // console.log("resp", resp);
     return new Args(resp.returnValue).nextString();
 }
+
+async function getAddressesSorted(client: Client, scAddr: string) {
+
+    let readData: IReadData = {
+        maxGas: BigInt(10_000_000),
+        targetAddress: scAddr,
+        targetFunction: "addresses_sorted",
+        parameter: new Args().serialize(),
+    }
+    const resp = await client.smartContracts().readSmartContract(readData);
+    console.log("resp", resp);
+    const addresses = new Args(resp.returnValue).nextArray(ArrayTypes.STRING);
+    return addresses;
+}
+
