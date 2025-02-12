@@ -330,7 +330,7 @@ class UmbrellaFeeds {
     verifySignatures(_hash: string, _signatures: string[], _pubKeys: string[]): void {
 
         let _REQUIRED_SIGNATURES: i32 = fromBytes<u8>(Storage.get(this.REQUIRED_SIGNATURES_KEY));
-        assert(_signatures.length >= _REQUIRED_SIGNATURES, "NotEnoughSignatures");
+        assert(_signatures.length >= _REQUIRED_SIGNATURES, `NotEnoughSignatures ${_signatures.length} >= ${_REQUIRED_SIGNATURES}`);
 
         // Check for each sig if it is valid
         let prevSigner = u256.Zero;

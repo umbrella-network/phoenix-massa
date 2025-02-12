@@ -10,7 +10,7 @@ import {
     pollEvents,
     okStatusOrThrow,
     getScAddressFromEvents,
-    getMinimalFees, REQUIRED_SIGNATURES
+    getMinimalFees, REQUIRED_SIGNATURES, ENV
 } from "./utils";
 import keccak256 from "@indeliblelabs/keccak256";
 import {getDeployedContracts, saveDeployedContracts} from "./common/deployed";
@@ -69,7 +69,7 @@ async function main() {
             umbArgs
         );
         let [opStatus, events] = await pollEvents(client, operationId, true);
-        console.log("[main] events:", events);
+        console.log(`[${ENV}]`, "events:", events);
         okStatusOrThrow(opStatus);
         scAddr = getScAddressFromEvents(events);
 
@@ -83,7 +83,7 @@ async function main() {
         // console.log("Contract has not changed, no need to deploy it!");
     }
 
-    console.log("[main] SC address (UmbrellaFeeds):", scAddr);
+    console.log(`[${ENV}]`, "SC address (UmbrellaFeeds):", scAddr);
     // tmp force exit
     process.exit(0);
 }
