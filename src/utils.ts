@@ -18,6 +18,8 @@ config({
 });
 
 const env = (process.env.ENV ?? 'dev').toUpperCase();
+export const ENV = env;
+
 const WALLET_SECRET_KEY = process.env[`${env}_WALLET_SECRET_KEY`];
 const MASSA_CHAIN_ID = env == 'PROD' ? CHAIN_ID.MainNet : CHAIN_ID.BuildNet;
 const JSON_RPC_URL_PUBLIC = process.env[`${env}_JSON_RPC_URL_PUBLIC`];

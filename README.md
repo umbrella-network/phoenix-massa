@@ -61,14 +61,14 @@ npm run build:Registry && npm run build:StakingBankStaticDev && npm run build:Um
 npm run build:Registry && npm run build:StakingBankStaticProd && npm run build:UmbrellaFeeds
 
 # deploy will register under `STAKING_BANK`
-ENV=prod npm run deploy:StakingBankStatic
+ENV=dev npm run deploy:StakingBankStatic
 
 # in case of problems, register it manually:
-ENV=prod npm run register:StakingBank
+ENV=buildnet npm run register:StakingBank
 
 # delete `UmbrellaFeeds` address from `deployed.json` then:
-ENV=prod npm run deploy:UmbrellaFeeds 
-ENV=prod npm run register:UmbrellaFeeds
+ENV=dev npm run deploy:UmbrellaFeeds 
+ENV=dev npm run register:UmbrellaFeeds
 ```
 
 Update prices (test):
