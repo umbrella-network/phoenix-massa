@@ -67,8 +67,8 @@ ENV=dev npm run deploy:StakingBankStatic
 ENV=buildnet npm run register:StakingBank
 
 # delete `UmbrellaFeeds` address from `deployed.json` then:
-ENV=dev npm run deploy:UmbrellaFeeds 
-ENV=dev npm run register:UmbrellaFeeds
+ENV=prod npm run deploy:UmbrellaFeeds 
+ENV=prod npm run register:UmbrellaFeeds
 ```
 
 Update prices (test):
